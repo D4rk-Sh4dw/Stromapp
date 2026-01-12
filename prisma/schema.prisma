@@ -1,0 +1,84 @@
+datasource db {
+  provider = "sqlite"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+model User {
+  id               String   @id @default(cuid())
+  email            String   @unique
+  passwordHash     String
+  role             Role     @default(USER)
+  twoFactorSecret  String?
+  twoFactorEnabled Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  
+  // Relations
+  mappings         SensorMapping[]
+  bills            Bill[]
+  autoBilling      Boolean @default(false)
+  
+  // Custom Pricing Settings
+  allowBatteryPricing Boolean @default(false) // If true, user benefits from internal price even when drawing from battery
+  customInternalRate  Float?  // Override global internal price per user
+  customGridBuffer    Int?    // Override global grid buffer (Watts) for "Internal" state detection
+  enablePvBilling     Boolean @default(false) // If true, PV/Internal pricing logic is applied
+  showPvDetails       Boolean @default(false) // If true, PV/Internal details are shown in PDF
+}
+
+model SensorMapping {
+  id              String @id @default(cuid())
+  userId          String
+  user            User   @relation(fields: [userId], references: [id])
+  
+  usageSensorId   String // e.g., "sensor.dishwasher_energy" (kWh total)
+  powerSensorId   String? // e.g. "sensor.dishwasher_power" (Watt live) - Optional
+  priceSensorId   String // e.g., "sensor.dynamic_price"
+  
+  factor          Float  @default(1.0)
+  label           String
+  
+  isVirtual       Boolean @default(false)
+  virtualGroupId  String?
+}
+
+model Bill {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  startDate   DateTime
+  endDate     DateTime
+  totalAmount Float
+  totalUsage  Float
+  pdfUrl      String?
+  mappingSnapshot String? // JSON snapshot of mappings
+  createdAt   DateTime @default(now())
+}
+
+model SystemSettings {
+  id                String   @id @default(cuid())
+  pvPowerSensorId   String?  // Sensor for PV Production (kW)
+  gridPowerSensorId String?  // Combined or Import Sensor
+  gridImportSensorId String? // Explicit Import Sensor (if split)
+  gridExportSensorId String? // Explicit Export Sensor (if split)
+  batteryPowerSensorId String?
+  batteryLevelSensorId String? // Battery SOC %
+  internalPrice     Float    @default(0.15)
+  gridFallbackPrice Float    @default(0.30) // Fallback price if dynamic price is missing
+  globalGridBufferWatts Int  @default(200) // Default threshold (Watts) for "Internal Power" state
+  
+  // PDF Template Settings
+  pdfCompanyName    String?  @default("StromApp GmbH & Co. KG")
+  pdfCompanyAddress String?  @default("Musterstraße 123, 12345 Musterstadt")
+  pdfFooterText     String?  @default("Dieses Dokument wurde maschinell erstellt und ist ohne Unterschrift gültig.")
+  pdfLogoUrl        String?  // Optional company logo URL
+  
+  updatedAt         DateTime @updatedAt
+}

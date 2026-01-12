@@ -1,0 +1,36 @@
+@import "tailwindcss";
+
+:root {
+  --background: oklch(0.1 0 0);
+  --foreground: oklch(0.98 0 0);
+  --primary: oklch(0.7 0.2 250); /* A nice electric blue */
+  --accent: oklch(0.8 0.15 150); /* Minty accent */
+  --card: oklch(0.15 0.02 0 / 0.7);
+  --border: oklch(0.3 0.02 0 / 0.3);
+}
+
+@theme {
+  --font-sans: 'Inter', sans-serif;
+  --color-primary: var(--primary);
+  --color-accent: var(--accent);
+  --color-card: var(--card);
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
+
+.glass {
+  background: var(--card);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.gradient-text {
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}

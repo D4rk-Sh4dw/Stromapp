@@ -1,0 +1,1 @@
+{"settings":{"batteryLevelSensorId":"evcc_battery_soc","batteryPowerSensorId":"evcc_battery_power","pvPowerSensorId":"evcc_pv_power","gridPowerSensorId":"tibberkeller_0100100700ff"},"results":{"batteryLevel":18.673,"batteryPower":0.011547,"pvPower":0,"gridPower":1.283}}
