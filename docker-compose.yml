@@ -2,7 +2,8 @@ version: '3.8'
 
 services:
   stromapp:
-    build: .
+    image: ghcr.io/d4rk-sh4dw/stromapp:nightly
+    # build: .
     container_name: stromapp
     restart: always
     ports:
