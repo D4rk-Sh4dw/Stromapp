@@ -1,36 +1,68 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ⚡ StromApp
 
-## Getting Started
+Eine moderne Web-Anwendung zur Verwaltung und Abrechnung von Stromkosten, PV-Erträgen und Batteriespeichern. Ideal für die Familie oder WG, um Transparenz in die Energiekosten zu bringen.
 
-First, run the development server:
+## ✨ Features
 
+- 📊 **Live Dashboard**: Aktueller Verbrauch, Kosten und Status (Einspeisung/Bezug) auf einen Blick.
+- 📈 **Historie**: Detaillierte Auswertungen (Woche/Monat/Jahr) mit Kostenverlauf.
+- ☀️ **PV & Batterie**: Intelligente Verrechnung von Eigenverbrauch und Netzbezug.
+- 💰 **Flexible Tarife**: Unterstützung für interne PV-Preise, Netzpreise und Fallback-Preise.
+- 🧾 **PDF Abrechnungen**: Automatische Generierung von monatlichen Abrechnungen.
+- 🐳 **Docker Ready**: Einfache Installation via Docker Compose.
+- 🔒 **Sicher**: JWT-Login, Admin-Bereich und 2FA-Support (TOTP).
+
+## 🚀 Installation
+
+### 1. Repository klonen
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/D4rk-Sh4dw/Stromapp.git
+cd Stromapp
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Konfiguration (.env)
+Kopiere die Beispiel-Konfiguration und passe sie an:
+```bash
+cp .env.example .env
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Bearbeite die `.env` Datei mit deinen Daten:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```ini
+# --- DATENBANK (SQLite) ---
+DATABASE_URL="file:./dev.db"
+PRISMA_CLIENT_ENGINE_TYPE="library"
+PRISMA_CLI_QUERY_ENGINE_TYPE="library"
 
-## Learn More
+# --- INFLUXDB (z.B. Home Assistant) ---
+INFLUXDB_URL="http://192.168.1.10:8086"
+INFLUXDB_TOKEN="DeinTokenHier=="
+INFLUXDB_ORG="home_assistant"
+INFLUXDB_BUCKET="home_assistant"
 
-To learn more about Next.js, take a look at the following resources:
+# --- SICHERHEIT ---
+JWT_SECRET="ein-sehr-langes-geheimes-passwort"
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 3. Starten mit Docker (Empfohlen)
+```bash
+docker-compose up -d
+```
+Die App ist nun unter `http://localhost:3000` erreichbar.
+Standard-Login: `admin@strom.de` / `admin` (Bitte sofort ändern!)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 4. Manuelle Installation (Dev)
+```bash
+npm install
+npm run dev
+```
 
-## Deploy on Vercel
+## 🛠 Technologien
+- **Framework**: [Next.js 16](https://nextjs.org/) (App Router, Turbopack)
+- **Database**: SQLite (via Prisma ORM)
+- **Time Series**: InfluxDB V2
+- **Styling**: TailwindCSS & Framer Motion
+- **Auth**: JOSE (JWT) & OTP
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 📝 Lizenz
+MIT
