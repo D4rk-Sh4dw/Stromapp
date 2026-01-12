@@ -1,5 +1,5 @@
-FROM node:20-alpine AS base
-RUN apk add --no-cache libc6-compat openssl
+FROM node:20-slim AS base
+RUN apt-get update -y && apt-get install -y openssl
 
 # Install dependencies only when needed
 FROM base AS deps
@@ -54,9 +54,5 @@ ENV PORT 3000
 # set hostname to localhost
 ENV HOSTNAME "0.0.0.0"
 
-# We need to run migrations on startup?
-# For SQLite, it's safer to ensure the DB file exists or is pushed.
-# However, in standalone mode, we run `node server.js`.
-# We might need a custom entrypoint to push db.
-
 CMD ["node", "server.js"]
+
