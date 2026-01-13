@@ -71,10 +71,10 @@ export async function calculateCost(
         const startTime = start.toISOString();
         const endTime = end.toISOString();
 
-        // Query usage difference (spread)
-        // Using spread(value) gets max-min in the period, which is correct for a counter
+        // Query usage difference (Last - First)
+        // using first/last avoids "spread" issues with 0-glitches
         const usageQuery = `
-            SELECT spread("value") as usage 
+            SELECT first("value") as f, last("value") as l
             FROM "kWh" 
             WHERE "entity_id" = '${sanitize(usageSensorId)}' 
             AND "value" > 0
@@ -99,8 +99,14 @@ export async function calculateCost(
 
         // Parse usage
         if (usageResult.results?.[0]?.series?.[0]?.values?.[0]) {
-            // value is [time, spread]
-            usage = usageResult.results[0].series[0].values[0][1] || 0;
+            // value is [time, first, last]
+            const f = usageResult.results[0].series[0].values[0][1];
+            const l = usageResult.results[0].series[0].values[0][2];
+
+            if (typeof f === 'number' && typeof l === 'number') {
+                usage = l - f;
+            }
+            if (usage < 0) usage = 0; // Reset protection
         }
 
         // Parse price
@@ -168,8 +174,10 @@ export async function getLiveStats(
             // Look back 15 minutes to get a stable rate
             const minutes = 15;
             const queryTime = `time > now() - ${minutes}m`;
+
+            // Robust Delta: Last - First
             const usageQuery = `
-                SELECT spread("value") as usage 
+                SELECT first("value") as f, last("value") as l
                 FROM "kWh" 
                 WHERE "entity_id" = '${sanitize(usageSensorId)}' 
                 AND "value" > 0
@@ -177,7 +185,16 @@ export async function getLiveStats(
             `;
             const res = await queryInflux(usageQuery);
             if (res.results?.[0]?.series?.[0]?.values?.[0]) {
-                const usageInPeriod = res.results[0].series[0].values[0][1] || 0;
+                const f = res.results[0].series[0].values[0][1];
+                const l = res.results[0].series[0].values[0][2];
+                let usageInPeriod = 0;
+
+                if (typeof f === 'number' && typeof l === 'number') {
+                    usageInPeriod = l - f;
+                }
+
+                if (usageInPeriod < 0) usageInPeriod = 0;
+
                 // kW = kWh / hours
                 return usageInPeriod / (minutes / 60) * factor;
             }
