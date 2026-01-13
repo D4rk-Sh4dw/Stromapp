@@ -77,6 +77,7 @@ export async function calculateCost(
             SELECT spread("value") as usage 
             FROM "kWh" 
             WHERE "entity_id" = '${sanitize(usageSensorId)}' 
+            AND "value" > 0
             AND time >= '${startTime}' AND time <= '${endTime}'
         `;
 
@@ -171,6 +172,7 @@ export async function getLiveStats(
                 SELECT spread("value") as usage 
                 FROM "kWh" 
                 WHERE "entity_id" = '${sanitize(usageSensorId)}' 
+                AND "value" > 0
                 AND ${queryTime}
             `;
             const res = await queryInflux(usageQuery);
@@ -281,6 +283,7 @@ export async function getHistory(
             SELECT spread("value") as usage 
             FROM "kWh" 
             WHERE "entity_id" = '${sanitize(usageSensorId)}' 
+            AND "value" > 0
             AND time >= '${startTime}' AND time <= '${endTime}'
             GROUP BY time(${interval}) fill(0)
         `;
@@ -492,6 +495,7 @@ export async function calculateGranularCost(
         SELECT spread("value") as usage 
         FROM "kWh" 
         WHERE "entity_id" = '${sanitize(usageSensorId)}' 
+        AND "value" > 0
         AND time >= '${startTime}' AND time <= '${endTime}'
         GROUP BY time(${interval}) fill(0)
     `;
@@ -645,6 +649,7 @@ export async function calculateExportRevenue(
             SELECT spread("value") as usage 
             FROM "kWh" 
             WHERE "entity_id" = '${sanitize(settings.gridExportSensorId)}' 
+            AND "value" > 0
             AND time >= '${startTime}' AND time <= '${endTime}'
         `;
 
