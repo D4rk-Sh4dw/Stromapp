@@ -49,6 +49,7 @@ interface Mapping {
     priceSensorId: string;
     factor: number;
     isVirtual: boolean;
+    virtualGroupId?: string;
     user?: { email: string; id: string };
 }
 
@@ -762,46 +763,117 @@ export default function AdminPanel() {
                         ) : (
                             <>
                                 <div className="md:hidden p-4 space-y-4">
-                                    {mappings.map((mapping) => (
-                                        <div key={mapping.id} className="bg-white/5 rounded-2xl p-4 border border-white/5">
-                                            <div className="flex justify-between items-start mb-4">
-                                                <div className="overflow-hidden">
-                                                    <h4 className="font-bold text-sm tracking-wide truncate">{mapping.label}</h4>
-                                                    <p className="text-xs text-white/40 mt-1 truncate">{mapping.user?.email || 'N/A'}</p>
-                                                </div>
-                                                <span className={`px-2 py-1 ml-2 rounded-md text-[10px] uppercase font-bold shrink-0 ${mapping.isVirtual ? 'bg-purple-500/20 text-purple-400' : 'bg-white/10 text-white/60'}`}>
-                                                    {mapping.isVirtual ? 'Virtuell' : 'Std'}
-                                                </span>
-                                            </div>
-                                            <div className="space-y-2 text-xs bg-black/20 rounded-xl p-3 mb-4 text-white/60">
-                                                <div className="flex items-center gap-2 truncate">
-                                                    <Zap className="w-3 h-3 text-yellow-400 shrink-0" />
-                                                    <span className="truncate">{mapping.usageSensorId}</span>
-                                                </div>
-                                                <div className="flex items-center gap-2 truncate">
-                                                    <LinkIcon className="w-3 h-3 text-blue-400 shrink-0" />
-                                                    <span className="truncate">{mapping.priceSensorId}</span>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-primary font-bold">x {mapping.factor}</span> Faktor
-                                                </div>
-                                            </div>
-                                            <div className="flex justify-end gap-2 border-t border-white/5 pt-3">
-                                                <button
-                                                    onClick={() => handleEditMapping(mapping)}
-                                                    className="p-2 bg-white/5 hover:bg-white/10 rounded-lg text-white transition-colors"
-                                                >
-                                                    <Edit className="w-4 h-4" />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDeleteMapping(mapping.id)}
-                                                    className="p-2 bg-red-500/10 hover:bg-red-500/20 rounded-lg text-red-400 transition-colors"
-                                                >
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ))}
+                                    {/* Helper to group mappings */}
+                                    {(() => {
+                                        const groupedMappings = new Map<string, any[]>();
+                                        const standaloneMappings: any[] = [];
+
+                                        mappings.forEach(m => {
+                                            if (m.isVirtual && m.virtualGroupId) {
+                                                if (!groupedMappings.has(m.virtualGroupId)) {
+                                                    groupedMappings.set(m.virtualGroupId, []);
+                                                }
+                                                groupedMappings.get(m.virtualGroupId)?.push(m);
+                                            } else {
+                                                standaloneMappings.push(m);
+                                            }
+                                        });
+
+                                        const allItems = [
+                                            ...standaloneMappings.map(m => ({ type: 'single', data: m })),
+                                            ...Array.from(groupedMappings.entries()).map(([id, ms]) => ({ type: 'group', id, data: ms }))
+                                        ];
+
+                                        return allItems.map((item: any) => {
+                                            if (item.type === 'single') {
+                                                const mapping = item.data;
+                                                return (
+                                                    <div key={mapping.id} className="bg-white/5 rounded-2xl p-4 border border-white/5">
+                                                        {/* Existing Card Content for Single Mapping */}
+                                                        <div className="flex justify-between items-start mb-4">
+                                                            <div className="overflow-hidden">
+                                                                <h4 className="font-bold text-sm tracking-wide truncate">{mapping.label}</h4>
+                                                                <p className="text-xs text-white/40 mt-1 truncate">{mapping.user?.email || 'N/A'}</p>
+                                                            </div>
+                                                            <span className="px-2 py-1 ml-2 rounded-md text-[10px] uppercase font-bold shrink-0 bg-white/10 text-white/60">
+                                                                Std
+                                                            </span>
+                                                        </div>
+                                                        <div className="space-y-2 text-xs bg-black/20 rounded-xl p-3 mb-4 text-white/60">
+                                                            <div className="flex items-center gap-2 truncate">
+                                                                <Zap className="w-3 h-3 text-yellow-400 shrink-0" />
+                                                                <span className="truncate">{mapping.usageSensorId}</span>
+                                                            </div>
+                                                            <div className="flex items-center gap-2 truncate">
+                                                                <LinkIcon className="w-3 h-3 text-blue-400 shrink-0" />
+                                                                <span className="truncate">{mapping.priceSensorId}</span>
+                                                            </div>
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="text-primary font-bold">x {mapping.factor}</span> Faktor
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex justify-end gap-2 border-t border-white/5 pt-3">
+                                                            <button
+                                                                onClick={() => handleEditMapping(mapping)}
+                                                                className="p-2 bg-white/5 hover:bg-white/10 rounded-lg text-white transition-colors"
+                                                            >
+                                                                <Edit className="w-4 h-4" />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleDeleteMapping(mapping.id)}
+                                                                className="p-2 bg-red-500/10 hover:bg-red-500/20 rounded-lg text-red-400 transition-colors"
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            } else {
+                                                // RENDER VIRTUAL GROUP CARD
+                                                const group = item.data as any[];
+                                                const first = group[0];
+                                                const groupLabel = first.label.split(' - ')[0] || first.label; // Extract group name
+
+                                                return (
+                                                    <div key={'group-' + item.id} className="bg-purple-500/5 rounded-2xl p-4 border border-purple-500/20">
+                                                        <div className="flex justify-between items-start mb-4">
+                                                            <div className="overflow-hidden">
+                                                                <h4 className="font-bold text-sm tracking-wide truncate text-purple-200">{groupLabel}</h4>
+                                                                <p className="text-xs text-white/40 mt-1 truncate">{first.user?.email || 'N/A'}</p>
+                                                            </div>
+                                                            <span className="px-2 py-1 ml-2 rounded-md text-[10px] uppercase font-bold shrink-0 bg-purple-500/20 text-purple-400">
+                                                                Virtuell ({group.length})
+                                                            </span>
+                                                        </div>
+
+                                                        {/* Condensed View of Components */}
+                                                        <div className="space-y-1 mb-4">
+                                                            {group.map((m: any, i: number) => (
+                                                                <div key={i} className="text-[10px] text-white/50 flex justify-between">
+                                                                    <span className="truncate max-w-[70%]">{m.usageSensorId}</span>
+                                                                    <span>x{m.factor}</span>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+
+                                                        <div className="flex justify-end gap-2 border-t border-white/5 pt-3">
+                                                            <button
+                                                                onClick={() => {
+                                                                    if (confirm(`Möchten Sie den virtuellen Zähler "${groupLabel}" wirklich löschen?`)) {
+                                                                        group.forEach((m: any) => handleDeleteMapping(m.id)); // Not atomic but works for now
+                                                                    }
+                                                                }}
+                                                                className="p-2 bg-red-500/10 hover:bg-red-500/20 rounded-lg text-red-400 transition-colors w-full flex items-center justify-center gap-2"
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
+                                                                Löschen
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            }
+                                        });
+                                    })()}
                                 </div>
                                 <table className="w-full text-left hidden md:table">
                                     <thead>

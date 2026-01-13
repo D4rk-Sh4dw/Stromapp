@@ -128,6 +128,50 @@ export async function POST(req: NextRequest) {
         }));
 
         // Create Bill Record
+        // AGGREGATION LOGIC: Group virtual sensors by virtualGroupId
+        const aggregatedDetails: any[] = [];
+        const virtualGroups = new Map<string, any>();
+
+        for (const detail of details) {
+            // Find mapping to check for virtualGroupId
+            const mapping = mappings.find(m => m.usageSensorId === detail.sensorId);
+            const groupId = mapping?.virtualGroupId;
+
+            if (groupId) {
+                if (!virtualGroups.has(groupId)) {
+                    // Initialize group
+                    const label = mapping?.label.split(' - ')[0] || mapping?.label || "Virtual Meter";
+                    virtualGroups.set(groupId, {
+                        ...detail,
+                        label: label, // Use the base label (before " - SensorName")
+                        isVirtualGroup: true,
+                        // Initialize sums
+                        usage: 0,
+                        cost: 0,
+                        usageInternal: 0,
+                        costInternal: 0,
+                        usageExternal: 0,
+                        costExternal: 0
+                    });
+                }
+
+                // Add to sums
+                const group = virtualGroups.get(groupId);
+                group.usage += detail.usage;
+                group.cost += detail.cost;
+                group.usageInternal += detail.usageInternal;
+                group.costInternal += detail.costInternal;
+                group.usageExternal += detail.usageExternal;
+                group.costExternal += detail.costExternal;
+            } else {
+                aggregatedDetails.push(detail);
+            }
+        }
+
+        // Add virtual groups to final details
+        virtualGroups.forEach(group => aggregatedDetails.push(group));
+
+        // Use AGGREGATED details for snapshot, but TOTALS remain the same (sum of parts = sum of whole)
         const totalExternalCost = details.reduce((sum, d) => sum + (d.costExternal || 0), 0);
         const profit = totalAmount - totalExternalCost;
 
@@ -139,7 +183,7 @@ export async function POST(req: NextRequest) {
                 totalUsage,
                 totalAmount,
                 profit,
-                mappingSnapshot: JSON.stringify(details),
+                mappingSnapshot: JSON.stringify(aggregatedDetails),
                 pdfUrl: null
             }
         });
