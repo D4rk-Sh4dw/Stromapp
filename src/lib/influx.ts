@@ -458,7 +458,7 @@ export async function getSystemStateHistory(
 
     process(priceRes, 'gridPrice');
     process(gridRes, 'gridImport', 1);
-    process(battRes, 'batteryDischarge', 1);
+    process(battRes, 'batteryDischarge', -1); // Invert: sensor reports negative=charging, positive=discharging
     process(pvRes, 'pvProduction', 1);
 
     return Array.from(map.values()).sort((a, b) => a.time - b.time);
