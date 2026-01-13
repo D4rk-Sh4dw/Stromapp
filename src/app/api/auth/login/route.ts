@@ -51,15 +51,22 @@ export async function POST(req: NextRequest) {
             user: { email: user.email, role: user.role }
         });
 
+        // Only use secure flag if we're actually on HTTPS
+        // In Docker, we might be behind a reverse proxy, so check the protocol
+        const isSecure = req.headers.get('x-forwarded-proto') === 'https' ||
+            req.url.startsWith('https://');
+
         const cookieOptions = {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
+            secure: isSecure,
             sameSite: 'lax' as const,
             maxAge: 3600 * 24 * 7,
             path: '/',
         };
 
         console.log('[LOGIN] Setting cookie with options:', cookieOptions);
+        console.log('[LOGIN] Request URL:', req.url);
+        console.log('[LOGIN] X-Forwarded-Proto:', req.headers.get('x-forwarded-proto'));
         response.cookies.set('session_token', token, cookieOptions);
 
         console.log('[LOGIN] Cookie set successfully, returning response');
