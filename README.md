@@ -35,8 +35,8 @@ POSTGRES_USER="stromapp"
 POSTGRES_PASSWORD="securepassword"
 POSTGRES_DB="stromapp"
 
-# Für lokale Entwicklung (falls du nicht Docker Compose nutzt):
-DATABASE_URL="postgresql://stromapp:securepassword@localhost:5432/stromapp?schema=public"
+# Nur für lokale Entwicklung OHNE Docker Compose (dann auskommentieren):
+# DATABASE_URL="postgresql://stromapp:securepassword@localhost:5432/stromapp?schema=public"
 
 # --- INFLUXDB (z.B. Home Assistant) ---
 INFLUXDB_URL="http://192.168.1.10:8086"
