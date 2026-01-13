@@ -907,44 +907,127 @@ export default function AdminPanel() {
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-border">
-                                        {mappings.map((mapping) => (
-                                            <tr key={mapping.id} className="hover:bg-white/5 transition-colors group">
-                                                <td className="px-6 py-4 font-medium">{mapping.label}</td>
-                                                <td className="px-6 py-4 text-sm text-white/60">{mapping.user?.email || 'N/A'}</td>
-                                                <td className="px-6 py-4">
-                                                    <div className="flex flex-col gap-1">
-                                                        <div className="flex items-center gap-2 text-xs text-white/60">
-                                                            <Zap className="w-3 h-3 text-yellow-400" /> {mapping.usageSensorId}
-                                                        </div>
-                                                        <div className="flex items-center gap-2 text-xs text-white/60">
-                                                            <LinkIcon className="w-3 h-3 text-blue-400" /> {mapping.priceSensorId}
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 text-sm font-mono text-primary font-bold">{mapping.factor?.toFixed(2)}</td>
-                                                <td className="px-6 py-4">
-                                                    <span className={`px-2 py-1 rounded-lg text-xs font-bold ${mapping.isVirtual ? 'bg-purple-500/20 text-purple-400' : 'bg-white/10 text-white/60'}`}>
-                                                        {mapping.isVirtual ? 'Virtuell' : 'Standard'}
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4 text-right flex justify-end gap-2">
-                                                    <button
-                                                        onClick={() => handleEditMapping(mapping)}
-                                                        className="p-2 hover:bg-white/10 text-white/60 hover:text-white rounded-lg transition-colors opacity-0 group-hover:opacity-100"
-                                                        title="Bearbeiten"
-                                                    >
-                                                        <Edit className="w-4 h-4" />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDeleteMapping(mapping.id)}
-                                                        className="p-2 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
-                                                        title="Löschen"
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        ))}
+                                        {(() => {
+                                            // Re-use grouping logic for desktop table
+                                            // Ideally this should be computed once above, but for now we re-compute or reuse 'allItems' if it was available in scope. 
+                                            // Actually 'allItems' computed inside the mobile block is not available here.
+                                            // Let's lift the grouping logic UP or duplicate it here. 
+                                            // Since the previous block was an IIFE {(() => ... )()}, the vars are not in scope.
+                                            // We will duplicate the simple grouping logic here for stability.
+
+                                            const groupedMappings = new Map<string, any[]>();
+                                            const standaloneMappings: any[] = [];
+
+                                            mappings.forEach(m => {
+                                                if (m.isVirtual && m.virtualGroupId) {
+                                                    if (!groupedMappings.has(m.virtualGroupId)) {
+                                                        groupedMappings.set(m.virtualGroupId, []);
+                                                    }
+                                                    groupedMappings.get(m.virtualGroupId)?.push(m);
+                                                } else {
+                                                    standaloneMappings.push(m);
+                                                }
+                                            });
+
+                                            // Sort standalone mappings? Maybe not needed.
+
+                                            const tableRows = [
+                                                ...standaloneMappings.map(m => ({ type: 'single', data: m })),
+                                                ...Array.from(groupedMappings.entries()).map(([id, ms]) => ({ type: 'group', id, data: ms }))
+                                            ];
+
+                                            return tableRows.map((item: any) => {
+                                                if (item.type === 'single') {
+                                                    const mapping = item.data;
+                                                    return (
+                                                        <tr key={mapping.id} className="hover:bg-white/5 transition-colors group">
+                                                            <td className="px-6 py-4 font-medium">{mapping.label}</td>
+                                                            <td className="px-6 py-4 text-sm text-white/60">{mapping.user?.email || 'N/A'}</td>
+                                                            <td className="px-6 py-4">
+                                                                <div className="flex flex-col gap-1">
+                                                                    <div className="flex items-center gap-2 text-xs text-white/60">
+                                                                        <Zap className="w-3 h-3 text-yellow-400" /> {mapping.usageSensorId}
+                                                                    </div>
+                                                                    <div className="flex items-center gap-2 text-xs text-white/60">
+                                                                        <LinkIcon className="w-3 h-3 text-blue-400" /> {mapping.priceSensorId}
+                                                                    </div>
+                                                                </div>
+                                                            </td>
+                                                            <td className="px-6 py-4 text-sm font-mono text-primary font-bold">{mapping.factor?.toFixed(2)}</td>
+                                                            <td className="px-6 py-4">
+                                                                <span className="px-2 py-1 rounded-lg text-xs font-bold bg-white/10 text-white/60">
+                                                                    Standard
+                                                                </span>
+                                                            </td>
+                                                            <td className="px-6 py-4 text-right flex justify-end gap-2">
+                                                                <button
+                                                                    onClick={() => handleEditMapping(mapping)}
+                                                                    className="p-2 hover:bg-white/10 text-white/60 hover:text-white rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                                                                    title="Bearbeiten"
+                                                                >
+                                                                    <Edit className="w-4 h-4" />
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleDeleteMapping(mapping.id)}
+                                                                    className="p-2 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                                                                    title="Löschen"
+                                                                >
+                                                                    <Trash2 className="w-4 h-4" />
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                } else {
+                                                    // Virtual Group Row
+                                                    const group = item.data as any[];
+                                                    const first = group[0];
+                                                    const groupLabel = first.label.split(' - ')[0] || first.label;
+                                                    // Collect unique users
+                                                    const uniqueUsers = Array.from(new Set(group.map((m: any) => m.user?.email).filter(Boolean)));
+                                                    const userLabel = uniqueUsers.length > 3
+                                                        ? `${uniqueUsers.slice(0, 3).join(', ')} +${uniqueUsers.length - 3}`
+                                                        : uniqueUsers.join(', ');
+
+                                                    return (
+                                                        <tr key={'group-' + item.id} className="hover:bg-purple-500/5 transition-colors group bg-purple-500/5 border-l-4 border-l-purple-500/50">
+                                                            <td className="px-6 py-4 font-medium text-purple-200">{groupLabel}</td>
+                                                            <td className="px-6 py-4 text-sm text-white/60 max-w-[200px] truncate" title={userLabel}>
+                                                                {userLabel || 'N/A'}
+                                                            </td>
+                                                            <td className="px-6 py-4">
+                                                                <div className="flex flex-col gap-1 text-xs text-white/50">
+                                                                    <span className="italic">{group.length} Komponente(n)</span>
+                                                                    {/* Show first 2 components as example */}
+                                                                    {group.slice(0, 2).map((m: any, idx: number) => (
+                                                                        <span key={idx} className="truncate max-w-[150px] opacity-70">- {m.usageSensorId}</span>
+                                                                    ))}
+                                                                    {group.length > 2 && <span className="opacity-50">...</span>}
+                                                                </div>
+                                                            </td>
+                                                            <td className="px-6 py-4 text-sm font-mono text-white/40">-</td>
+                                                            <td className="px-6 py-4">
+                                                                <span className="px-2 py-1 rounded-lg text-xs font-bold bg-purple-500/20 text-purple-400">
+                                                                    Virtuell
+                                                                </span>
+                                                            </td>
+                                                            <td className="px-6 py-4 text-right flex justify-end gap-2">
+                                                                <button
+                                                                    onClick={() => {
+                                                                        if (confirm(`Möchten Sie den virtuellen Zähler "${groupLabel}" für ALLE Benutzer wirklich löschen?`)) {
+                                                                            group.forEach((m: any) => handleDeleteMapping(m.id));
+                                                                        }
+                                                                    }}
+                                                                    className="p-2 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                                                                    title="Ganze Gruppe löschen"
+                                                                >
+                                                                    <Trash2 className="w-4 h-4" />
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                }
+                                            });
+                                        })()}
                                     </tbody>
                                 </table>
                             </>
