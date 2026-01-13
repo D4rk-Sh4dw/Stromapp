@@ -16,6 +16,11 @@ fi
 
 if [ $HAS_TABLES -eq 0 ]; then
     echo "📦 Database empty or not initialized. Setting up..."
+    
+    # Prisma CLI usually needs .env file or explicit env var loading
+    echo "Using DATABASE_URL from environment..."
+    echo "DATABASE_URL=\"$DATABASE_URL\"" > .env
+
     npx prisma db push
     npx prisma db seed
     echo "✅ Database initialized!"
