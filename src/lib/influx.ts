@@ -280,12 +280,12 @@ export async function getHistory(
 
         // Daily usage
         const usageQuery = `
-            SELECT spread("value") as usage 
+            SELECT last("value") as val 
             FROM "kWh" 
             WHERE "entity_id" = '${sanitize(usageSensorId)}' 
             AND "value" > 0
             AND time >= '${startTime}' AND time <= '${endTime}'
-            GROUP BY time(${interval}) fill(0)
+            GROUP BY time(${interval}) fill(previous)
         `;
 
         // Daily avg price
@@ -307,17 +307,36 @@ export async function getHistory(
 
         // Map time -> data
         const dataMap = new Map<string, { usage: number; price: number }>();
+        let prevVal: number | null = null;
 
         usageSeries.forEach((row: any[]) => {
             const t = row[0];
-            const u = row[1] || 0;
+            const val = row[1];
+
+            if (val === null || val === undefined) return;
+
+            if (prevVal === null) {
+                prevVal = val;
+                // Since this is visualization (bar chart), skipping the first day's usage 
+                // means the first bar is 0 or missing.
+                // Better than showing massive outlier.
+                // Optionally we could fetch one point before START.
+                dataMap.set(t, { usage: 0, price: 0 }); // Placeholder
+                return;
+            }
+
+            let u = val - prevVal;
+            prevVal = val;
+
+            if (u < 0) u = 0; // Reset
+            if (u > 500) u = 0; // Outlier protection (optional, hardcoded for now)
+
             dataMap.set(t, { usage: u, price: 0 });
         });
 
         priceSeries.forEach((row: any[]) => {
             const t = row[0];
             let p = row[1] || 0;
-
             if (p <= 0.0001 && fallbackPrice > 0) p = fallbackPrice;
 
             if (dataMap.has(t)) {
@@ -492,12 +511,12 @@ export async function calculateGranularCost(
     const endTime = end.toISOString();
 
     const usageQuery = `
-        SELECT spread("value") as usage 
+        SELECT last("value") as val 
         FROM "kWh" 
         WHERE "entity_id" = '${sanitize(usageSensorId)}' 
         AND "value" > 0
         AND time >= '${startTime}' AND time <= '${endTime}'
-        GROUP BY time(${interval}) fill(0)
+        GROUP BY time(${interval}) fill(previous)
     `;
 
     const res = await queryInflux(usageQuery);
@@ -514,11 +533,34 @@ export async function calculateGranularCost(
 
     const sysMap = new Map(systemData.map(d => [d.time, d]));
 
+    // We need at least 2 points to calculate delta
+    let prevVal: number | null = null;
+
     for (const row of series) {
         const t = new Date(row[0]).getTime();
-        const usage = (row[1] || 0) * factor; // kWh
+        const val = row[1]; // Total kWh counter
 
-        if (usage <= 0) continue;
+        if (val === null || val === undefined) continue;
+
+        if (prevVal === null) {
+            prevVal = val;
+            continue;
+        }
+
+        let usage = (val - prevVal) * factor; // kWh
+
+        prevVal = val; // Update for next
+
+        // Usage Checks
+        if (usage < 0) {
+            // Reset detected or ordering issue. Ignore.
+            usage = 0;
+        }
+        // Glitch check: If usage > 100 kWh in 1 hour? Unlikely (100kW load).
+        // Let's filter insanely high values (e.g. > 500 kWh) to assume bad data?
+        // Optional. For now 'last-diff' is safer than spread.
+
+        if (usage <= 0.0001) continue;
 
         const sys = sysMap.get(t);
 
@@ -532,59 +574,41 @@ export async function calculateGranularCost(
             const isGridLow = sys.gridImport < rules.gridBufferWatts;
 
             // 2. Is there actual internal power available? (PV or Battery)
-            // We use a small threshold (e.g. 50W) to avoid noise
             const hasPv = sys.pvProduction > 50;
             const hasBattery = sys.batteryDischarge > 50;
-
-            // 3. Is Battery Allowed?
-            // If battery is providing the power, we only count it as internal if allowed.
-            // If PV is providing power, it's always internal.
-            // Complex case: PV=0, Battery=500W, Grid=0.
-            // If allowBattery=false -> External Price.
 
             let isInternalSource = false;
 
             if (hasPv) {
-                // If PV is producing, we assume we use PV first.
                 isInternalSource = true;
             } else if (hasBattery) {
-                // If only Battery is producing, check if allowed
                 if (rules.allowBatteryPricing) {
                     isInternalSource = true;
                 } else {
-                    // Battery active but not allowed -> External
                     isInternalSource = false;
                 }
             } else {
-                // Neither PV nor Battery active -> Must be just low consumption from Grid
                 isInternalSource = false;
             }
 
             // FINAL DECISION
             if (isGridLow && isInternalSource) {
-                // Real Internal Usage
                 price = rules.internalPrice;
                 isInternal = true;
             } else {
-                // Grid Usage (High import OR Low import but no internal source)
                 price = sys.gridPrice;
                 isInternal = false;
             }
         } else {
-            // Fallback if system data missing for this hour.
-            // Behaivor: Assume Grid Usage (isInternal=false) and 0 price (will be touched up by fallback logic)
             price = 0;
             isInternal = false;
         }
 
-        // Safety: If price is 0 (missing grid price data or missing system data)
-        // This is where "Backup Price" logic kicks in.
+        // Price Fallback
         if (price <= 0.0001) {
             if (isInternal && rules.internalPrice > 0) {
-                // Should rarely happen as isInternal sets price, but for safety
                 price = rules.internalPrice;
             } else if (!isInternal && rules.gridFallbackPrice > 0) {
-                // Use the fallback price from settings
                 price = rules.gridFallbackPrice;
             }
         }
@@ -642,21 +666,28 @@ export async function calculateExportRevenue(
     let exportKwh = 0;
 
     if (settings.gridExportSensorId) {
-        // Try Spread (Counter)
-        // If it's a power sensor, 'spread' is meaningless. 
-        // We'll trust the user to provide a Counter for "Exported Energy".
-        const usageQuery = `
-            SELECT spread("value") as usage 
-            FROM "kWh" 
-            WHERE "entity_id" = '${sanitize(settings.gridExportSensorId)}' 
-            AND "value" > 0
-            AND time >= '${startTime}' AND time <= '${endTime}'
-        `;
-
+        // Try Last Delta (Counter)
+        // Calculating total export for the period: Last - First.
         try {
-            const res = await queryInflux(usageQuery);
+            const q = `
+                SELECT first("value") as f, last("value") as l 
+                FROM "kWh" 
+                WHERE "entity_id" = '${sanitize(settings.gridExportSensorId)}' 
+                AND "value" > 0
+                AND time >= '${startTime}' AND time <= '${endTime}'
+             `;
+
+            const res = await queryInflux(q);
             if (res.results?.[0]?.series?.[0]?.values?.[0]) {
-                exportKwh = res.results[0].series[0].values[0][1] || 0;
+                // values[0] = [time, first, last]
+                const f = res.results[0].series[0].values[0][1];
+                const l = res.results[0].series[0].values[0][2];
+
+                if (typeof f === 'number' && typeof l === 'number') {
+                    exportKwh = l - f;
+                }
+
+                if (exportKwh < 0) exportKwh = 0;
             }
         } catch (e) {
             console.error("[INFLUX] Error calculating export revenue:", e);
