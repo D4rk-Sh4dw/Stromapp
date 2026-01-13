@@ -4,7 +4,7 @@ set -e
 echo "🚀 Starting StromApp..."
 
 # Check if database has tables
-DB_PATH="./prisma/dev.db"
+DB_PATH="./db/dev.db"
 HAS_TABLES=0
 
 if [ -f "$DB_PATH" ]; then

@@ -3,16 +3,15 @@ version: '3.8'
 services:
   stromapp:
     image: ghcr.io/d4rk-sh4dw/stromapp:nightly
-    user: root # Fix permission issues with SQLite mount
     # build: .
     container_name: stromapp
     restart: always
     ports:
       - "3000:3000"
     volumes:
-      - ./dev.db:/app/prisma/dev.db
+      - ./db:/app/db
     environment:
-      - DATABASE_URL=file:./prisma/dev.db
+      - DATABASE_URL=file:./db/dev.db
       - INFLUXDB_URL=${INFLUXDB_URL}
       - INFLUXDB_TOKEN=${INFLUXDB_TOKEN}
       - INFLUXDB_ORG=${INFLUXDB_ORG}
