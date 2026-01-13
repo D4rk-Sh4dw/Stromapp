@@ -41,22 +41,28 @@ export async function POST(req: NextRequest) {
             role: user.role
         });
 
-        console.log('[LOGIN] Token generated, setting cookie...');
+        console.log('[LOGIN] Token generated successfully');
+        console.log('[LOGIN] Token length:', token.length);
+        console.log('[LOGIN] User ID:', user.id);
+        console.log('[LOGIN] User role:', user.role);
 
         const response = NextResponse.json({
             success: true,
             user: { email: user.email, role: user.role }
         });
 
-        response.cookies.set('session_token', token, {
+        const cookieOptions = {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
+            sameSite: 'lax' as const,
             maxAge: 3600 * 24 * 7,
             path: '/',
-        });
+        };
 
-        console.log('[LOGIN] Cookie set, returning response');
+        console.log('[LOGIN] Setting cookie with options:', cookieOptions);
+        response.cookies.set('session_token', token, cookieOptions);
+
+        console.log('[LOGIN] Cookie set successfully, returning response');
         return response;
     } catch (error: any) {
         console.error('[LOGIN] Error:', error);
