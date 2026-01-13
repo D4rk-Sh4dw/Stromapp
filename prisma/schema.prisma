@@ -70,7 +70,8 @@ model SystemSettings {
   pvPowerSensorId   String?  // Sensor for PV Production (kW)
   gridPowerSensorId String?  // Combined or Import Sensor
   gridImportSensorId String? // Explicit Import Sensor (if split)
-  gridExportSensorId String? // Explicit Export Sensor (if split)
+  gridExportSensorId String? // Explicit Export Sensor (if split - Power)
+  gridExportKwhSensorId String? // Cumulative Export Sensor (Energy - kWh) for billing
   batteryPowerSensorId String?
   batteryLevelSensorId String? // Battery SOC %
   invertBatterySign Boolean  @default(true) // If true, invert battery power sign (negative=charging, positive=discharging)

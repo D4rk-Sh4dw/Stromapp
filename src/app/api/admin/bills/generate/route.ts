@@ -171,9 +171,31 @@ export async function POST(req: NextRequest) {
         // Add virtual groups to final details
         virtualGroups.forEach(group => aggregatedDetails.push(group));
 
-        // Use AGGREGATED details for snapshot, but TOTALS remain the same (sum of parts = sum of whole)
+        // Calculate Export Revenue (if configured)
+        let exportRevenue = 0;
+        if (settings.gridExportKwhSensorId) {
+            try {
+                const resExport = await calculateGranularCost(
+                    settings.gridExportKwhSensorId,
+                    1.0,
+                    start,
+                    end,
+                    systemData,
+                    pricingRules,
+                    INTERVAL
+                );
+                if (resExport) {
+                    exportRevenue = resExport.totalUsage * (settings.gridExportPrice || 0);
+                    console.log(`[BillGen] Export Revenue: ${resExport.totalUsage.toFixed(2)} kWh * ${settings.gridExportPrice} = ${exportRevenue.toFixed(2)}€`);
+                }
+            } catch (e) {
+                console.error("Failed to calculate export revenue:", e);
+            }
+        }
+
         const totalExternalCost = details.reduce((sum, d) => sum + (d.costExternal || 0), 0);
-        const profit = totalAmount - totalExternalCost;
+        // Profit = UserPayments - GridCost + ExportEarnings
+        const profit = totalAmount - totalExternalCost + exportRevenue;
 
         const bill = await prisma.bill.create({
             data: {

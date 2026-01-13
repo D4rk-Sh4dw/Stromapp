@@ -83,7 +83,8 @@ export default function AdminPanel() {
         globalGridBufferWatts: 200,
         pdfCompanyName: "StromApp GmbH & Co. KG",
         pdfCompanyAddress: "Musterstraße 123, 12345 Musterstadt",
-        pdfFooterText: "Dieses Dokument wurde maschinell erstellt und ist ohne Unterschrift gültig."
+        pdfFooterText: "Dieses Dokument wurde maschinell erstellt und ist ohne Unterschrift gültig.",
+        gridExportKwhSensorId: ""
     });
     const [liveData, setLiveData] = useState<any>(null);
     const [gridSensorMode, setGridSensorMode] = useState<'combined' | 'split'>('combined');
@@ -272,7 +273,8 @@ export default function AdminPanel() {
                     globalGridBufferWatts: (data as any).globalGridBufferWatts ?? 200,
                     pdfCompanyName: (data as any).pdfCompanyName || "StromApp GmbH & Co. KG",
                     pdfCompanyAddress: (data as any).pdfCompanyAddress || "Musterstraße 123, 12345 Musterstadt",
-                    pdfFooterText: (data as any).pdfFooterText || "Dieses Dokument wurde maschinell erstellt und ist ohne Unterschrift gültig."
+                    pdfFooterText: (data as any).pdfFooterText || "Dieses Dokument wurde maschinell erstellt und ist ohne Unterschrift gültig.",
+                    gridExportKwhSensorId: (data as any).gridExportKwhSensorId || ""
                 });
             }
         } catch (e) { console.error(e); }
@@ -1826,6 +1828,19 @@ export default function AdminPanel() {
                                             />
                                         </div>
                                     )}
+                                    <div className="pt-4 border-t border-white/5">
+                                        <EntitySearch
+                                            label="Total Netz-Einspeisung / Verkauf (kWh)"
+                                            value={systemSettings.gridExportKwhSensorId || ""}
+                                            onChange={(v) => setSystemSettings({ ...systemSettings, gridExportKwhSensorId: v })}
+                                            type="energy"
+                                            placeholder="z.B. sensor.grid_export_cumulative"
+                                        />
+                                        <p className="text-[10px] text-white/40 mt-1 ml-1">
+                                            Optional: Wird benötigt, um den "Einspeisemengen-Gewinn" auf Rechnungen zu kalkulieren.
+                                            Sollte ein Zählerstand (total increasing) sein.
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
 
