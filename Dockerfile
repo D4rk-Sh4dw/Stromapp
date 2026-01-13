@@ -1,5 +1,5 @@
 FROM node:20-slim AS base
-RUN apt-get update -y && apt-get install -y openssl
+RUN apt-get update -y && apt-get install -y openssl sqlite3 && rm -rf /var/lib/apt/lists/*
 
 # Install dependencies only when needed
 FROM base AS deps
@@ -46,13 +46,18 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 
+# Copy node_modules for Prisma CLI (needed for db push/seed)
+COPY --from=deps --chown=nextjs:nodejs /app/node_modules ./node_modules
+
+# Copy entrypoint script
+COPY --chown=nextjs:nodejs docker-entrypoint.sh ./
+RUN chmod +x docker-entrypoint.sh
+
 USER nextjs
 
 EXPOSE 3000
 
 ENV PORT 3000
-# set hostname to localhost
 ENV HOSTNAME "0.0.0.0"
 
-CMD ["node", "server.js"]
-
+ENTRYPOINT ["./docker-entrypoint.sh"]
