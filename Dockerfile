@@ -1,5 +1,5 @@
 FROM node:20-slim AS base
-RUN apt-get update -y && apt-get install -y openssl sqlite3 && rm -rf /var/lib/apt/lists/*
+RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 
 # Install dependencies only when needed
 FROM base AS deps
@@ -38,6 +38,8 @@ RUN adduser --system --uid 1001 nextjs
 # Set correct permissions
 RUN mkdir .next
 RUN chown nextjs:nodejs .next
+# Ensure nextjs user can write to /app (for temp scripts or .env if needed, though we avoid .env now)
+RUN chown nextjs:nodejs /app
 
 # Automatically leverage output traces to reduce image size
 # https://nextjs.org/docs/advanced-features/output-file-tracing

@@ -3,31 +3,30 @@ version: '3.8'
 services:
   stromapp:
     image: ghcr.io/d4rk-sh4dw/stromapp:nightly
-    # build: .
     container_name: stromapp
     restart: always
     ports:
       - "3000:3000"
-    volumes:
-      - ./db:/app/db
+    depends_on:
+      - db
     environment:
-      - DATABASE_URL=file:./db/dev.db
+      - DATABASE_URL=postgresql://stromapp:securepassword@db:5432/stromapp?schema=public
       - INFLUXDB_URL=${INFLUXDB_URL}
       - INFLUXDB_TOKEN=${INFLUXDB_TOKEN}
       - INFLUXDB_ORG=${INFLUXDB_ORG}
       - INFLUXDB_BUCKET=${INFLUXDB_BUCKET}
       - JWT_SECRET=${JWT_SECRET}
-    # Optional: Command to ensure DB schema is pushed on start
-    # Since we use SQLite volume, if it's empty we might need to push.
-    # But usually `node server.js` is the command.
-    # We can rely on the user running `npx prisma db push` locally on the volume file?
-    # Or override command:
-    # command: sh -c "npx prisma db push && node server.js"
-    # But `npx` might not be in the final runner image if we pruned too much?
-    # Standalone output includes minimal node_modules.
-    # Prisma CLI might NOT be in standalone.
-    # So we rely on the mounted DB being ready, or we accept that for now.
 
+  db:
+    image: postgres:15-alpine
+    container_name: stromapp-db
+    restart: always
+    environment:
+      - POSTGRES_USER=stromapp
+      - POSTGRES_PASSWORD=securepassword
+      - POSTGRES_DB=stromapp
+    volumes:
+      - db-data:/var/lib/postgresql/data
     # If you want to run InfluxDB locally as well, uncomment this:
     #  influxdb:
     #    image: influxdb:2
