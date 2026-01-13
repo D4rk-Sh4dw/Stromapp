@@ -5,7 +5,7 @@ echo "🚀 Starting StromApp..."
 echo "Using DATABASE_URL from environment..."
 
 # Wait for database and check state using a temporary Node script
-cat <<EOF > /tmp/check-db.js
+cat <<'EOF' > /tmp/check-db.js
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
