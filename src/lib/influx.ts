@@ -458,7 +458,9 @@ export async function getSystemStateHistory(
 
     process(priceRes, 'gridPrice');
     process(gridRes, 'gridImport', 1);
-    process(battRes, 'batteryDischarge', -1); // Invert: sensor reports negative=charging, positive=discharging
+    // Use invertBatterySign setting: if true, invert the sign (negative=charging, positive=discharging)
+    const batteryMultiplier = settings.invertBatterySign ? -1 : 1;
+    process(battRes, 'batteryDischarge', batteryMultiplier);
     process(pvRes, 'pvProduction', 1);
 
     return Array.from(map.values()).sort((a, b) => a.time - b.time);

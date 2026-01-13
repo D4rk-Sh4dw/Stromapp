@@ -76,6 +76,7 @@ export default function AdminPanel() {
         gridExportSensorId: "",
         batteryPowerSensorId: "",
         batteryLevelSensorId: "",
+        invertBatterySign: true,
         internalPrice: 0.15,
         gridFallbackPrice: 0.30,
         globalGridBufferWatts: 200,
@@ -1611,6 +1612,21 @@ export default function AdminPanel() {
                                         type="all"
                                         placeholder="z.B. battery_level"
                                     />
+                                </div>
+                                <div className="mt-4 flex items-center gap-3 p-3 bg-white/5 rounded-lg border border-white/10">
+                                    <input
+                                        type="checkbox"
+                                        id="invertBatterySign"
+                                        checked={systemSettings.invertBatterySign ?? true}
+                                        onChange={(e) => setSystemSettings({ ...systemSettings, invertBatterySign: e.target.checked })}
+                                        className="w-4 h-4 rounded border-white/20 bg-white/10 text-blue-500 focus:ring-2 focus:ring-blue-500"
+                                    />
+                                    <label htmlFor="invertBatterySign" className="text-sm cursor-pointer flex-1">
+                                        <span className="font-medium text-white">Batterie-Vorzeichen invertieren</span>
+                                        <p className="text-xs text-white/60 mt-1">
+                                            Aktivieren, wenn dein Sensor negativ beim Laden und positiv beim Entladen meldet
+                                        </p>
+                                    </label>
                                 </div>
                             </div>
 
