@@ -6,6 +6,25 @@ config();
 const prisma = new PrismaClient();
 
 async function main() {
+    // Check if admin user already exists
+    const existingAdmin = await prisma.user.findUnique({
+        where: { email: 'admin@strom.de' }
+    });
+
+    if (existingAdmin) {
+        console.log('[SEED] ℹ️  Admin user already exists, skipping creation');
+        console.log('[SEED] User ID:', existingAdmin.id);
+        console.log('[SEED] Email:', existingAdmin.email);
+        console.log('[SEED] Role:', existingAdmin.role);
+        console.log('[SEED] 2FA Enabled:', existingAdmin.twoFactorEnabled);
+        console.log('');
+        console.log('='.repeat(50));
+        console.log('Admin user exists - no changes made');
+        console.log('='.repeat(50));
+        return;
+    }
+
+    // Create new admin user
     const passwordHash = await bcrypt.hash('admin', 10);
     console.log('[SEED] Generated password hash:', passwordHash);
 
@@ -13,12 +32,8 @@ async function main() {
     const testCompare = await bcrypt.compare('admin', passwordHash);
     console.log('[SEED] Hash verification test:', testCompare ? 'PASS' : 'FAIL');
 
-    const admin = await prisma.user.upsert({
-        where: { email: 'admin@strom.de' },
-        update: {
-            passwordHash: passwordHash,
-        },
-        create: {
+    const admin = await prisma.user.create({
+        data: {
             email: 'admin@strom.de',
             passwordHash: passwordHash,
             role: 'ADMIN',
@@ -26,7 +41,7 @@ async function main() {
         },
     });
 
-    console.log('[SEED] ✅ Admin user upserted successfully');
+    console.log('[SEED] ✅ Admin user created successfully');
     console.log('[SEED] User ID:', admin.id);
     console.log('[SEED] Email:', admin.email);
     console.log('[SEED] Role:', admin.role);
