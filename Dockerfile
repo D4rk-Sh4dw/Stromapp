@@ -21,6 +21,8 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED 1
 
 # Generate Prisma Client
+# We need a dummy DATABASE_URL for prisma generate to work (it validates the schema)
+ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
 RUN npx prisma generate
 
 RUN npm run build
