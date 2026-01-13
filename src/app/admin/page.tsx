@@ -264,6 +264,7 @@ export default function AdminPanel() {
                     gridExportSensorId: (data as any).gridExportSensorId || "",
                     batteryPowerSensorId: (data as any).batteryPowerSensorId || "",
                     batteryLevelSensorId: (data as any).batteryLevelSensorId || "",
+                    invertBatterySign: (data as any).invertBatterySign ?? true,
                     internalPrice: (data as any).internalPrice ?? 0.15,
                     gridFallbackPrice: (data as any).gridFallbackPrice ?? 0.30,
                     globalGridBufferWatts: (data as any).globalGridBufferWatts ?? 200,
