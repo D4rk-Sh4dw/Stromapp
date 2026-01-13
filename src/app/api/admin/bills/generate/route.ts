@@ -128,6 +128,9 @@ export async function POST(req: NextRequest) {
         }));
 
         // Create Bill Record
+        const totalExternalCost = details.reduce((sum, d) => sum + (d.costExternal || 0), 0);
+        const profit = totalAmount - totalExternalCost;
+
         const bill = await prisma.bill.create({
             data: {
                 userId: targetUserId,
@@ -135,6 +138,7 @@ export async function POST(req: NextRequest) {
                 endDate: end,
                 totalUsage,
                 totalAmount,
+                profit,
                 mappingSnapshot: JSON.stringify(details),
                 pdfUrl: null
             }

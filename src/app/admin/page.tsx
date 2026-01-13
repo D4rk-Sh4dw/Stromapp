@@ -120,7 +120,8 @@ export default function AdminPanel() {
 
     const [virtualMeter, setVirtualMeter] = useState({
         label: "",
-        sensors: [{ sensorId: "", factor: 1.0 }],
+        sensors: [{ sensorId: "", factor: 1.0, operation: "add" }],
+        divider: 1.0,
         priceSensorId: "",
         targetUserId: "",
     });
@@ -370,9 +371,15 @@ export default function AdminPanel() {
         setSaving(true);
         try {
             // Create virtual meter as a special mapping
+            const divider = virtualMeter.divider || 1.0;
+
             for (const sensor of virtualMeter.sensors) {
                 const sourceMapping = mappings.find(m => m.usageSensorId === sensor.sensorId);
                 const sensorLabel = sourceMapping ? sourceMapping.label : sensor.sensorId;
+
+                // Effective factor = (Operation * UserFactor) / Divider
+                const opMult = sensor.operation === "subtract" ? -1 : 1;
+                const effectiveFactor = (sensor.factor * opMult) / divider;
 
                 await fetch("/api/admin/mappings", {
                     method: "POST",
@@ -381,7 +388,7 @@ export default function AdminPanel() {
                         label: `${virtualMeter.label} - ${sensorLabel}`,
                         usageSensorId: sensor.sensorId,
                         priceSensorId: virtualMeter.priceSensorId,
-                        factor: sensor.factor,
+                        factor: effectiveFactor,
                         isVirtual: true,
                         virtualGroupId: virtualMeter.label.toLowerCase().replace(/\s+/g, '_'),
                         targetUserId: virtualMeter.targetUserId,
@@ -389,7 +396,7 @@ export default function AdminPanel() {
                 });
             }
             setShowVirtualModal(false);
-            setVirtualMeter({ label: "", sensors: [{ sensorId: "", factor: 1.0 }], priceSensorId: "", targetUserId: "" });
+            setVirtualMeter({ label: "", sensors: [{ sensorId: "", factor: 1.0, operation: "add" }], divider: 1.0, priceSensorId: "", targetUserId: "" });
             fetchMappings();
         } catch (error) {
             console.error("Failed to add virtual meter:", error);
@@ -519,7 +526,7 @@ export default function AdminPanel() {
     const addVirtualSensor = () => {
         setVirtualMeter({
             ...virtualMeter,
-            sensors: [...virtualMeter.sensors, { sensorId: "", factor: 1.0 }]
+            sensors: [...virtualMeter.sensors, { sensorId: "", factor: 1.0, operation: "add" }]
         });
     };
 
@@ -1262,7 +1269,7 @@ export default function AdminPanel() {
 
                                 <div className="space-y-4">
                                     <div className="flex justify-between items-center">
-                                        <label className="text-xs font-bold text-white/40">Sensoren & Faktoren</label>
+                                        <label className="text-xs font-bold text-white/40">Sensoren & Rechenoperationen</label>
                                         <button
                                             type="button"
                                             onClick={addVirtualSensor}
@@ -1273,7 +1280,21 @@ export default function AdminPanel() {
                                     </div>
 
                                     {virtualMeter.sensors.map((sensor, index) => (
-                                        <div key={index} className="flex gap-3 items-start">
+                                        <div key={index} className="flex gap-3 items-start p-3 bg-white/5 rounded-2xl border border-white/5">
+                                            <div className="w-20">
+                                                <select
+                                                    value={sensor.operation}
+                                                    onChange={e => {
+                                                        const newSensors = [...virtualMeter.sensors];
+                                                        newSensors[index].operation = e.target.value;
+                                                        setVirtualMeter({ ...virtualMeter, sensors: newSensors });
+                                                    }}
+                                                    className={`w-full bg-white/5 border border-white/10 rounded-xl py-3 px-2 outline-none text-center font-bold ${sensor.operation === 'add' ? 'text-green-400' : 'text-red-400'}`}
+                                                >
+                                                    <option value="add">+</option>
+                                                    <option value="subtract">-</option>
+                                                </select>
+                                            </div>
                                             <div className="flex-1">
                                                 <EntitySearch
                                                     value={sensor.sensorId}
@@ -1284,10 +1305,10 @@ export default function AdminPanel() {
                                                     }}
                                                     type="energy"
                                                     suggestions={mappings.filter(m => !m.isVirtual).map(m => ({ label: m.label, value: m.usageSensorId }))}
-                                                    placeholder="Sensor suchen oder wählen..."
+                                                    placeholder="Sensor wählen..."
                                                 />
                                             </div>
-                                            <div className="w-24">
+                                            <div className="w-20">
                                                 <input
                                                     type="number"
                                                     step="0.01"
@@ -1297,8 +1318,9 @@ export default function AdminPanel() {
                                                         newSensors[index].factor = parseFloat(e.target.value);
                                                         setVirtualMeter({ ...virtualMeter, sensors: newSensors });
                                                     }}
-                                                    placeholder="Faktor"
-                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-3 outline-none focus:border-primary/50 text-center"
+                                                    placeholder="x"
+                                                    title="Faktor (normal 1.0)"
+                                                    className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-2 outline-none border-primary/20 text-center"
                                                 />
                                             </div>
                                             {virtualMeter.sensors.length > 1 && (
@@ -1314,6 +1336,24 @@ export default function AdminPanel() {
                                     ))}
                                 </div>
 
+                                <div>
+                                    <label className="text-xs font-bold text-white/40 ml-1">Teilen durch (Divider)</label>
+                                    <div className="flex items-center gap-2 mt-1">
+                                        <span className="text-xl font-bold text-white/40">/</span>
+                                        <input
+                                            type="number"
+                                            step="0.01"
+                                            min="0.0001"
+                                            value={virtualMeter.divider}
+                                            onChange={e => setVirtualMeter({ ...virtualMeter, divider: parseFloat(e.target.value) })}
+                                            className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 outline-none focus:border-primary/50 font-mono text-lg"
+                                        />
+                                    </div>
+                                    <p className="text-[10px] text-white/30 mt-1 ml-1">
+                                        Ergebnis wird durch diesen Wert geteilt (z.B. 3 Parteien &rarr; 3).
+                                    </p>
+                                </div>
+
                                 <EntitySearch
                                     label="Preis-Sensor (für alle)"
                                     value={virtualMeter.priceSensorId}
@@ -1322,13 +1362,18 @@ export default function AdminPanel() {
                                     placeholder="z.B. sensor.electricity_price"
                                 />
 
-                                <div className="bg-white/5 rounded-2xl p-4 text-sm text-white/60">
-                                    <p className="font-medium text-white mb-2">Vorschau:</p>
-                                    <p>
-                                        Kosten = {virtualMeter.sensors.map((s, i) =>
-                                            `(${s.sensorId || 'Sensor ' + (i + 1)} × ${s.factor})`
-                                        ).join(' + ')} × Preis
-                                    </p>
+                                <div className="bg-white/5 rounded-2xl p-4 text-sm text-white/60 font-mono text-xs">
+                                    <p className="font-bold text-white mb-2 font-sans">Formel Vorschau:</p>
+                                    <div className="p-3 bg-black/20 rounded-xl overflow-x-auto whitespace-nowrap">
+                                        (
+                                        {virtualMeter.sensors.map((s, i) => (
+                                            <span key={i} className={s.operation === 'subtract' ? 'text-red-300' : 'text-green-300'}>
+                                                {i > 0 ? (s.operation === 'subtract' ? ' - ' : ' + ') : (s.operation === 'subtract' ? '-' : '')}
+                                                ({s.sensorId || 'Sensor'} × {s.factor})
+                                            </span>
+                                        ))}
+                                        ) / <span className="text-blue-300">{virtualMeter.divider}</span>
+                                    </div>
                                 </div>
 
                                 <div className="pt-4 flex gap-3">
@@ -1371,6 +1416,7 @@ export default function AdminPanel() {
                                         <th className="text-left p-6 text-xs text-white/40 uppercase tracking-wider font-bold">User</th>
                                         <th className="text-left p-6 text-xs text-white/40 uppercase tracking-wider font-bold">Zeitraum</th>
                                         <th className="text-right p-6 text-xs text-white/40 uppercase tracking-wider font-bold">Verbrauch</th>
+                                        <th className="text-right p-6 text-xs text-white/40 uppercase tracking-wider font-bold">Gewinn</th>
                                         <th className="text-right p-6 text-xs text-white/40 uppercase tracking-wider font-bold">Betrag</th>
                                         <th className="p-6"></th>
                                     </tr>
@@ -1378,7 +1424,7 @@ export default function AdminPanel() {
                                 <tbody className="divide-y divide-white/5">
                                     {bills.length === 0 ? (
                                         <tr>
-                                            <td colSpan={6} className="p-10 text-center text-white/30 italic">Keine Abrechnungen gefunden</td>
+                                            <td colSpan={7} className="p-10 text-center text-white/30 italic">Keine Abrechnungen gefunden</td>
                                         </tr>
                                     ) : (
                                         bills.map(bill => (
@@ -1389,6 +1435,9 @@ export default function AdminPanel() {
                                                     {new Date(bill.startDate).toLocaleDateString()} - {new Date(bill.endDate).toLocaleDateString()}
                                                 </td>
                                                 <td className="p-6 text-right font-mono text-sm">{bill.totalUsage.toFixed(1)} kWh</td>
+                                                <td className="p-6 text-right font-mono text-sm text-green-400 font-bold">
+                                                    {(bill as any).profit ? `+ ${(bill as any).profit.toFixed(2)} €` : '-'}
+                                                </td>
                                                 <td className="p-6 text-right font-bold text-primary">{bill.totalAmount.toFixed(2)} €</td>
                                                 <td className="p-6 flex justify-end gap-2">
                                                     <button

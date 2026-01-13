@@ -59,6 +59,7 @@ model Bill {
   endDate     DateTime
   totalAmount Float
   totalUsage  Float
+  profit      Float? // Revenue - GridCost (Nullable for old bills)
   pdfUrl      String?
   mappingSnapshot String? // JSON snapshot of mappings
   createdAt   DateTime @default(now())

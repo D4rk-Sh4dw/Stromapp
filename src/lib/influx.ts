@@ -564,20 +564,28 @@ export async function calculateGranularCost(
             continue;
         }
 
-        let usage = (val - prevVal) * factor; // kWh
+        // Robust Delta Calculation (Last - First logic per interval)
+        // We calculate delta from the raw counter values first
+        let rawDelta = val - prevVal;
+
+        // 1. Reset Protection: If raw counter value dropped, it's a reset.
+        // We MUST ignore this to prevents massive negative spikes (or positive if factor is negative).
+        if (rawDelta < 0) {
+            rawDelta = 0;
+        }
+
+        // 2. Apply Factor (can be negative for subtraction)
+        let usage = rawDelta * factor;
+
+        // 3. Outlier check (Optional, for extremely unrealistic jumps > 500kWh in 1h)
+        // Only apply if positive usage, to avoid flagging legitimate negative usage (subtraction)
+        if (usage > 500) usage = 0;
 
         prevVal = val; // Update for next
 
-        // Usage Checks
-        if (usage < 0) {
-            // Reset detected or ordering issue. Ignore.
-            usage = 0;
-        }
-        // Glitch check: If usage > 100 kWh in 1 hour? Unlikely (100kW load).
-        // Let's filter insanely high values (e.g. > 500 kWh) to assume bad data?
-        // Optional. For now 'last-diff' is safer than spread.
-
-        if (usage <= 0.0001) continue;
+        // Usage is now valid, even if negative (e.g. subtraction).
+        // Minimal noise filter
+        if (Math.abs(usage) <= 0.0001) continue;
 
         const sys = sysMap.get(t);
 
