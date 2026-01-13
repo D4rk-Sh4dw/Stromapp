@@ -10,7 +10,7 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./prisma/dev.db:/app/prisma/dev.db
+      - ./dev.db:/app/prisma/dev.db
     environment:
       - DATABASE_URL=file:./prisma/dev.db
       - INFLUXDB_URL=${INFLUXDB_URL}
