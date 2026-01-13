@@ -3,6 +3,7 @@ version: '3.8'
 services:
   stromapp:
     image: ghcr.io/d4rk-sh4dw/stromapp:nightly
+    user: root # Fix permission issues with SQLite mount
     # build: .
     container_name: stromapp
     restart: always
