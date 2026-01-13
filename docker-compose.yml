@@ -11,7 +11,7 @@ services:
     volumes:
       - ./prisma/dev.db:/app/prisma/dev.db
     environment:
-      - DATABASE_URL=file:/app/prisma/dev.db
+      - DATABASE_URL=file:./prisma/dev.db
       - INFLUXDB_URL=${INFLUXDB_URL}
       - INFLUXDB_TOKEN=${INFLUXDB_TOKEN}
       - INFLUXDB_ORG=${INFLUXDB_ORG}
@@ -28,20 +28,20 @@ services:
     # Prisma CLI might NOT be in standalone.
     # So we rely on the mounted DB being ready, or we accept that for now.
 
-# If you want to run InfluxDB locally as well, uncomment this:
-#  influxdb:
-#    image: influxdb:2
-#    container_name: influxdb
-#    ports:
-#      - "8086:8086"
-#    volumes:
-#      - influxdb-data:/var/lib/influxdb2
-#    environment:
-#      - DOCKER_INFLUXDB_INIT_MODE=setup
-#      - DOCKER_INFLUXDB_INIT_USERNAME=admin
-#      - DOCKER_INFLUXDB_INIT_PASSWORD=password123
-#      - DOCKER_INFLUXDB_INIT_ORG=home
-#      - DOCKER_INFLUXDB_INIT_BUCKET=energy
+    # If you want to run InfluxDB locally as well, uncomment this:
+    #  influxdb:
+    #    image: influxdb:2
+    #    container_name: influxdb
+    #    ports:
+    #      - "8086:8086"
+    #    volumes:
+    #      - influxdb-data:/var/lib/influxdb2
+    #    environment:
+    #      - DOCKER_INFLUXDB_INIT_MODE=setup
+    #      - DOCKER_INFLUXDB_INIT_USERNAME=admin
+    #      - DOCKER_INFLUXDB_INIT_PASSWORD=password123
+    #      - DOCKER_INFLUXDB_INIT_ORG=home
+    #      - DOCKER_INFLUXDB_INIT_BUCKET=energy
 
-# volumes:
-#   influxdb-data:
+    # volumes:
+    #   influxdb-data:
