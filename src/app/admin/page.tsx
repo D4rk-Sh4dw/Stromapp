@@ -104,7 +104,7 @@ export default function AdminPanel() {
         powerSensorId: "",
         priceSensorId: "",
         factor: 1.0,
-        targetUserId: "",
+        targetUserIds: [] as string[],
     });
 
     const [newUser, setNewUser] = useState({
@@ -124,7 +124,7 @@ export default function AdminPanel() {
         sensors: [{ sensorId: "", factor: 1.0, operation: "add" }],
         divider: 1.0,
         priceSensorId: "",
-        targetUserId: "",
+        targetUserIds: [] as string[],
     });
 
     const [showBillModal, setShowBillModal] = useState(false);
@@ -340,28 +340,38 @@ export default function AdminPanel() {
         e.preventDefault();
         setSaving(true);
         try {
-            const url = editingId
-                ? `/api/admin/mappings/${editingId}`
-                : "/api/admin/mappings";
-
-            const method = editingId ? "PUT" : "POST";
-
-            const res = await fetch(url, {
-                method,
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ ...newMapping, targetUserId: newMapping.targetUserId }),
-            });
-            if (res.ok) {
-                setShowAddModal(false);
-                setNewMapping({ label: "", usageSensorId: "", powerSensorId: "", priceSensorId: "", factor: 1.0, targetUserId: "" });
-                setEditingId(null);
-                fetchMappings();
-            } else {
-                const data = await res.json();
-                alert(data.error || "Fehler beim Speichern");
+            if (newMapping.targetUserIds.length === 0) {
+                alert("Bitte wählen Sie mindestens einen Benutzer aus.");
+                setSaving(false);
+                return;
             }
+
+            if (editingId) {
+                // Edit Mode: Single Update
+                const targetUserId = newMapping.targetUserIds[0];
+                await fetch(`/api/admin/mappings/${editingId}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ ...newMapping, targetUserId }),
+                });
+            } else {
+                // Create Mode: Multi-User Loop
+                for (const userId of newMapping.targetUserIds) {
+                    await fetch("/api/admin/mappings", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ ...newMapping, targetUserId: userId }),
+                    });
+                }
+            }
+
+            setShowAddModal(false);
+            setNewMapping({ label: "", usageSensorId: "", powerSensorId: "", priceSensorId: "", factor: 1.0, targetUserIds: [] });
+            setEditingId(null);
+            fetchMappings();
         } catch (error) {
             console.error("Failed to save mapping:", error);
+            alert("Fehler beim Speichern");
         } finally {
             setSaving(false);
         }
@@ -371,36 +381,46 @@ export default function AdminPanel() {
         e.preventDefault();
         setSaving(true);
         try {
-            // Create virtual meter as a special mapping
+            if (virtualMeter.targetUserIds.length === 0) {
+                alert("Bitte wählen Sie mindestens einen Benutzer aus.");
+                setSaving(false);
+                return;
+            }
+
             const divider = virtualMeter.divider || 1.0;
+            const groupId = virtualMeter.label.toLowerCase().replace(/\s+/g, '_');
 
-            for (const sensor of virtualMeter.sensors) {
-                const sourceMapping = mappings.find(m => m.usageSensorId === sensor.sensorId);
-                const sensorLabel = sourceMapping ? sourceMapping.label : sensor.sensorId;
+            // Loop through selected users
+            for (const userId of virtualMeter.targetUserIds) {
+                for (const sensor of virtualMeter.sensors) {
+                    const sourceMapping = mappings.find(m => m.usageSensorId === sensor.sensorId);
+                    const sensorLabel = sourceMapping ? sourceMapping.label : sensor.sensorId;
 
-                // Effective factor = (Operation * UserFactor) / Divider
-                const opMult = sensor.operation === "subtract" ? -1 : 1;
-                const effectiveFactor = (sensor.factor * opMult) / divider;
+                    // Effective factor
+                    const opMult = sensor.operation === "subtract" ? -1 : 1;
+                    const effectiveFactor = (sensor.factor * opMult) / divider;
 
-                await fetch("/api/admin/mappings", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        label: `${virtualMeter.label} - ${sensorLabel}`,
-                        usageSensorId: sensor.sensorId,
-                        priceSensorId: virtualMeter.priceSensorId,
-                        factor: effectiveFactor,
-                        isVirtual: true,
-                        virtualGroupId: virtualMeter.label.toLowerCase().replace(/\s+/g, '_'),
-                        targetUserId: virtualMeter.targetUserId,
-                    }),
-                });
+                    await fetch("/api/admin/mappings", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            label: `${virtualMeter.label} - ${sensorLabel}`,
+                            usageSensorId: sensor.sensorId,
+                            priceSensorId: virtualMeter.priceSensorId,
+                            factor: effectiveFactor,
+                            isVirtual: true,
+                            virtualGroupId: groupId,
+                            targetUserId: userId,
+                        }),
+                    });
+                }
             }
             setShowVirtualModal(false);
-            setVirtualMeter({ label: "", sensors: [{ sensorId: "", factor: 1.0, operation: "add" }], divider: 1.0, priceSensorId: "", targetUserId: "" });
+            setVirtualMeter({ label: "", sensors: [{ sensorId: "", factor: 1.0, operation: "add" }], divider: 1.0, priceSensorId: "", targetUserIds: [] });
             fetchMappings();
         } catch (error) {
             console.error("Failed to add virtual meter:", error);
+            alert("Fehler beim Erstellen des virtuellen Zählers");
         } finally {
             setSaving(false);
         }
@@ -498,7 +518,7 @@ export default function AdminPanel() {
             powerSensorId: mapping.powerSensorId || "",
             priceSensorId: mapping.priceSensorId,
             factor: mapping.factor,
-            targetUserId: mapping.user?.id || "", // Assuming Mapping has user info joined, but interface says user?: {email:string}. We need ID!
+            targetUserIds: mapping.user ? [mapping.user.id] : [],
         });
         setEditingId(mapping.id);
         setShowAddModal(true);
@@ -541,7 +561,7 @@ export default function AdminPanel() {
     const closeMappingModal = () => {
         setShowAddModal(false);
         setEditingId(null);
-        setNewMapping({ label: "", usageSensorId: "", powerSensorId: "", priceSensorId: "", factor: 1.0, targetUserId: "" });
+        setNewMapping({ label: "", usageSensorId: "", powerSensorId: "", priceSensorId: "", factor: 1.0, targetUserIds: [] });
     };
 
     const renderBillDetails = (bill: Bill) => {
@@ -1043,17 +1063,42 @@ export default function AdminPanel() {
 
                             <form onSubmit={handleAddMapping} className="space-y-4">
                                 <div>
-                                    <label className="text-xs font-bold text-white/40 ml-1">Zu Benutzer zuweisen (optional)</label>
-                                    <select
-                                        value={newMapping.targetUserId}
-                                        onChange={e => setNewMapping({ ...newMapping, targetUserId: e.target.value })}
-                                        className="w-full mt-1 bg-white/5 border border-white/10 rounded-2xl py-3 px-4 outline-none focus:border-primary/50 text-white"
-                                    >
-                                        <option value="" className="bg-slate-900">Mir selbst zuweisen</option>
-                                        {users.map(u => (
-                                            <option key={u.id} value={u.id} className="bg-slate-900">{u.email} ({u.role})</option>
-                                        ))}
-                                    </select>
+                                    <label className="text-xs font-bold text-white/40 ml-1 mb-2 block">Benutzer zuweisen (Mehrfachauswahl möglich)</label>
+                                    <div className="bg-white/5 border border-white/10 rounded-2xl p-2 max-h-40 overflow-y-auto custom-scrollbar">
+                                        {users.length === 0 ? (
+                                            <div className="text-sm text-white/40 p-2 italic">Keine Benutzer gefunden</div>
+                                        ) : (
+                                            <div className="space-y-1">
+                                                {/* "Select All" Option? Maybe later. For now simple list. */}
+                                                {users.map(u => (
+                                                    <label key={u.id} className="flex items-center gap-3 p-2 hover:bg-white/5 rounded-xl cursor-pointer transition-colors group">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={newMapping.targetUserIds.includes(u.id)}
+                                                            onChange={(e) => {
+                                                                if (e.target.checked) {
+                                                                    setNewMapping({ ...newMapping, targetUserIds: [...newMapping.targetUserIds, u.id] });
+                                                                } else {
+                                                                    setNewMapping({ ...newMapping, targetUserIds: newMapping.targetUserIds.filter(id => id !== u.id) });
+                                                                }
+                                                            }}
+                                                            disabled={!!editingId} // Disable editing user assignment for now
+                                                            className="w-4 h-4 rounded border-white/20 bg-white/10 text-primary focus:ring-primary/50"
+                                                        />
+                                                        <span className={`text-sm ${newMapping.targetUserIds.includes(u.id) ? 'text-white font-medium' : 'text-white/60 group-hover:text-white/80'}`}>
+                                                            {u.email}
+                                                        </span>
+                                                        {editingId && newMapping.targetUserIds.includes(u.id) && (
+                                                            <span className="text-[10px] bg-white/10 px-1.5 py-0.5 rounded text-white/40 ml-auto">
+                                                                {u.role}
+                                                            </span>
+                                                        )}
+                                                    </label>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                    {editingId && <p className="text-[10px] text-white/40 mt-1 ml-1">Benutzerzuweisung kann beim Bearbeiten nicht geändert werden.</p>}
                                 </div>
 
                                 <div>
@@ -1314,17 +1359,35 @@ export default function AdminPanel() {
 
                             <form onSubmit={handleAddVirtualMeter} className="space-y-6">
                                 <div>
-                                    <label className="text-xs font-bold text-white/40 ml-1">Zu Benutzer zuweisen (optional)</label>
-                                    <select
-                                        value={virtualMeter.targetUserId}
-                                        onChange={e => setVirtualMeter({ ...virtualMeter, targetUserId: e.target.value })}
-                                        className="w-full mt-1 bg-white/5 border border-white/10 rounded-2xl py-3 px-4 outline-none focus:border-primary/50 text-white"
-                                    >
-                                        <option value="" className="bg-slate-900">Mir selbst zuweisen</option>
-                                        {users.map(u => (
-                                            <option key={u.id} value={u.id} className="bg-slate-900">{u.email} ({u.role})</option>
-                                        ))}
-                                    </select>
+                                    <label className="text-xs font-bold text-white/40 ml-1 mb-2 block">Benutzer zuweisen (Mehrfachauswahl möglich)</label>
+                                    <div className="bg-white/5 border border-white/10 rounded-2xl p-2 max-h-40 overflow-y-auto custom-scrollbar">
+                                        {users.length === 0 ? (
+                                            <div className="text-sm text-white/40 p-2 italic">Keine Benutzer gefunden</div>
+                                        ) : (
+                                            <div className="space-y-1">
+                                                {/* "Select All" Option? Maybe later. For now simple list. */}
+                                                {users.map(u => (
+                                                    <label key={u.id} className="flex items-center gap-3 p-2 hover:bg-white/5 rounded-xl cursor-pointer transition-colors group">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={virtualMeter.targetUserIds.includes(u.id)}
+                                                            onChange={(e) => {
+                                                                if (e.target.checked) {
+                                                                    setVirtualMeter({ ...virtualMeter, targetUserIds: [...virtualMeter.targetUserIds, u.id] });
+                                                                } else {
+                                                                    setVirtualMeter({ ...virtualMeter, targetUserIds: virtualMeter.targetUserIds.filter(id => id !== u.id) });
+                                                                }
+                                                            }}
+                                                            className="w-4 h-4 rounded border-white/20 bg-white/10 text-primary focus:ring-primary/50"
+                                                        />
+                                                        <span className={`text-sm ${virtualMeter.targetUserIds.includes(u.id) ? 'text-white font-medium' : 'text-white/60 group-hover:text-white/80'}`}>
+                                                            {u.email}
+                                                        </span>
+                                                    </label>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
 
                                 <div>
