@@ -45,9 +45,28 @@ export async function PUT(req: NextRequest) {
 
         // Validate and clean data
         const updateData: any = {};
+
+        // Sensor IDs
+        if (data.pvPowerSensorId !== undefined) updateData.pvPowerSensorId = data.pvPowerSensorId || null;
+        if (data.gridPowerSensorId !== undefined) updateData.gridPowerSensorId = data.gridPowerSensorId || null;
+        if (data.gridImportSensorId !== undefined) updateData.gridImportSensorId = data.gridImportSensorId || null;
+        if (data.gridExportSensorId !== undefined) updateData.gridExportSensorId = data.gridExportSensorId || null;
+        if (data.batteryPowerSensorId !== undefined) updateData.batteryPowerSensorId = data.batteryPowerSensorId || null;
+        if (data.batteryLevelSensorId !== undefined) updateData.batteryLevelSensorId = data.batteryLevelSensorId || null;
+
+        // Battery sign inversion
+        if (data.invertBatterySign !== undefined) updateData.invertBatterySign = Boolean(data.invertBatterySign);
+
+        // Pricing
         if (data.internalPrice !== undefined) updateData.internalPrice = parseFloat(data.internalPrice);
         if (data.gridFallbackPrice !== undefined) updateData.gridFallbackPrice = parseFloat(data.gridFallbackPrice);
         if (data.globalGridBufferWatts !== undefined) updateData.globalGridBufferWatts = parseInt(data.globalGridBufferWatts);
+
+        // PDF Settings
+        if (data.pdfCompanyName !== undefined) updateData.pdfCompanyName = data.pdfCompanyName;
+        if (data.pdfCompanyAddress !== undefined) updateData.pdfCompanyAddress = data.pdfCompanyAddress;
+        if (data.pdfFooterText !== undefined) updateData.pdfFooterText = data.pdfFooterText;
+        if (data.pdfLogoUrl !== undefined) updateData.pdfLogoUrl = data.pdfLogoUrl || null;
 
         // Update first record
         const first = await prisma.systemSettings.findFirst();
@@ -62,10 +81,11 @@ export async function PUT(req: NextRequest) {
             settings = await prisma.systemSettings.create({
                 data: {
                     ...updateData,
-                    // Set defaults for others if creating new
+                    // Set defaults for required fields if creating new
                     internalPrice: updateData.internalPrice || 0.15,
                     gridFallbackPrice: updateData.gridFallbackPrice || 0.30,
-                    globalGridBufferWatts: updateData.globalGridBufferWatts || 200
+                    globalGridBufferWatts: updateData.globalGridBufferWatts || 200,
+                    invertBatterySign: updateData.invertBatterySign ?? true
                 }
             });
         }
