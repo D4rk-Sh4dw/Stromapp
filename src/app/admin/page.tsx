@@ -546,6 +546,27 @@ export default function AdminPanel() {
         }
     };
 
+    const handleDeleteGroup = async (group: any[]) => {
+        if (!confirm(`Möchten Sie diesen virtuellen Zähler (${group.length} Komponenten) wirklich löschen?`)) return;
+
+        let successCount = 0;
+        for (const m of group) {
+            try {
+                // Direct fetch without confirm
+                await fetch(`/api/admin/mappings/${m.id}`, { method: "DELETE" });
+                successCount++;
+            } catch (e) {
+                console.error("Failed to delete mapping part:", m.id, e);
+            }
+        }
+
+        if (successCount > 0) {
+            fetchMappings();
+        } else {
+            alert("Löschen fehlgeschlagen.");
+        }
+    };
+
     const addVirtualSensor = () => {
         setVirtualMeter({
             ...virtualMeter,
@@ -792,10 +813,12 @@ export default function AdminPanel() {
 
                                         mappings.forEach(m => {
                                             if (m.isVirtual && m.virtualGroupId) {
-                                                if (!groupedMappings.has(m.virtualGroupId)) {
-                                                    groupedMappings.set(m.virtualGroupId, []);
+                                                // Group by GroupId AND UserId
+                                                const key = `${m.virtualGroupId}_${m.user?.id || 'unknown'}`;
+                                                if (!groupedMappings.has(key)) {
+                                                    groupedMappings.set(key, []);
                                                 }
-                                                groupedMappings.get(m.virtualGroupId)?.push(m);
+                                                groupedMappings.get(key)?.push(m);
                                             } else {
                                                 standaloneMappings.push(m);
                                             }
@@ -803,15 +826,15 @@ export default function AdminPanel() {
 
                                         const allItems = [
                                             ...standaloneMappings.map(m => ({ type: 'single', data: m })),
-                                            ...Array.from(groupedMappings.entries()).map(([id, ms]) => ({ type: 'group', id, data: ms }))
+                                            ...Array.from(groupedMappings.entries()).map(([key, ms]) => ({ type: 'group', id: key, data: ms }))
                                         ];
 
                                         return allItems.map((item: any) => {
                                             if (item.type === 'single') {
+                                                // ... (Single Card Logic - Unchanged)
                                                 const mapping = item.data;
                                                 return (
                                                     <div key={mapping.id} className="bg-white/5 rounded-2xl p-4 border border-white/5">
-                                                        {/* Existing Card Content for Single Mapping */}
                                                         <div className="flex justify-between items-start mb-4">
                                                             <div className="overflow-hidden">
                                                                 <h4 className="font-bold text-sm tracking-wide truncate">{mapping.label}</h4>
@@ -854,37 +877,36 @@ export default function AdminPanel() {
                                                 // RENDER VIRTUAL GROUP CARD
                                                 const group = item.data as any[];
                                                 const first = group[0];
-                                                const groupLabel = first.label.split(' - ')[0] || first.label; // Extract group name
+                                                const groupLabel = first.label.includes(' - ') ? first.label.split(' - ').slice(0, -1).join(' - ') : first.label;
+                                                const userEmail = first.user?.email || 'N/A';
 
                                                 return (
                                                     <div key={'group-' + item.id} className="bg-purple-500/5 rounded-2xl p-4 border border-purple-500/20">
                                                         <div className="flex justify-between items-start mb-4">
                                                             <div className="overflow-hidden">
                                                                 <h4 className="font-bold text-sm tracking-wide truncate text-purple-200">{groupLabel}</h4>
-                                                                <p className="text-xs text-white/40 mt-1 truncate">{first.user?.email || 'N/A'}</p>
+                                                                <p className="text-xs text-white/40 mt-1 truncate">{userEmail}</p>
                                                             </div>
                                                             <span className="px-2 py-1 ml-2 rounded-md text-[10px] uppercase font-bold shrink-0 bg-purple-500/20 text-purple-400">
-                                                                Virtuell ({group.length})
+                                                                Virtuell
                                                             </span>
                                                         </div>
 
                                                         {/* Condensed View of Components */}
                                                         <div className="space-y-1 mb-4">
-                                                            {group.map((m: any, i: number) => (
+                                                            <p className="text-[10px] text-white/40 italic mb-2">{group.length} Komponente(n)</p>
+                                                            {group.slice(0, 3).map((m: any, i: number) => (
                                                                 <div key={i} className="text-[10px] text-white/50 flex justify-between">
                                                                     <span className="truncate max-w-[70%]">{m.usageSensorId}</span>
-                                                                    <span>x{m.factor}</span>
+                                                                    <span>x{m.factor.toFixed(2)}</span>
                                                                 </div>
                                                             ))}
+                                                            {group.length > 3 && <p className="text-[10px] text-white/30 text-center">...</p>}
                                                         </div>
 
                                                         <div className="flex justify-end gap-2 border-t border-white/5 pt-3">
                                                             <button
-                                                                onClick={() => {
-                                                                    if (confirm(`Möchten Sie den virtuellen Zähler "${groupLabel}" wirklich löschen?`)) {
-                                                                        group.forEach((m: any) => handleDeleteMapping(m.id)); // Not atomic but works for now
-                                                                    }
-                                                                }}
+                                                                onClick={() => handleDeleteGroup(group)}
                                                                 className="p-2 bg-red-500/10 hover:bg-red-500/20 rounded-lg text-red-400 transition-colors w-full flex items-center justify-center gap-2"
                                                             >
                                                                 <Trash2 className="w-4 h-4" />
