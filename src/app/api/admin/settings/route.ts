@@ -38,6 +38,7 @@ export async function POST(req: NextRequest) {
         const {
             pvPowerSensorId, gridPowerSensorId, gridImportSensorId, gridExportSensorId,
             internalPrice, gridFallbackPrice, batteryPowerSensorId, batteryLevelSensorId, globalGridBufferWatts,
+            invertBatterySign,
             pdfCompanyName, pdfCompanyAddress, pdfFooterText, pdfLogoUrl
         } = body as any;
 
@@ -50,6 +51,7 @@ export async function POST(req: NextRequest) {
             gridExportSensorId: gridExportSensorId || null,
             batteryPowerSensorId: batteryPowerSensorId || null,
             batteryLevelSensorId: batteryLevelSensorId || null,
+            invertBatterySign: invertBatterySign ?? true, // Default to true
             internalPrice: (internalPrice !== undefined && internalPrice !== '') ? parseFloat(internalPrice) : 0.15,
             gridFallbackPrice: (gridFallbackPrice !== undefined && gridFallbackPrice !== '') ? parseFloat(gridFallbackPrice) : 0.30,
             globalGridBufferWatts: (globalGridBufferWatts !== undefined && globalGridBufferWatts !== '') ? parseInt(globalGridBufferWatts) : 200,
