@@ -600,3 +600,71 @@ export async function calculateGranularCost(
 
     return { totalCost, totalUsage, usageInternal, usageExternal, costInternal, costExternal };
 }
+
+// Calculate Total Revenue from Grid Exports
+export async function calculateExportRevenue(
+    start: Date,
+    end: Date,
+    settings: any // SystemSettings
+): Promise<{ totalExportKwh: number; revenue: number }> {
+    if (!INFLUX_URL || (!settings.gridExportSensorId && !settings.gridPowerSensorId)) {
+        return { totalExportKwh: 0, revenue: 0 };
+    }
+
+    const startTime = start.toISOString();
+    const endTime = end.toISOString();
+    const exportPrice = settings.gridExportPrice || 0;
+
+    // Determine how to get export data
+    // Option A: Explicit Export Counter (kWh) - Ideal
+    // Option B: Explicit Export Power (W) - Integrate over time (less accurate without integral)
+    // Option C: Combined Power (W) - Filter negative values and integrate
+
+    // Assumption: We usually have an "Export Counter" (kWh) if we have a smart meter,
+    // OR we have a dedicated "Export Power" sensor.
+
+    // HOWEVER, SystemSettings only defines gridExportSensorId etc.
+    // If gridExportSensorId is defined, we assume it's a COUNTER (kWh).
+    // If not, and gridPowerSensorId is defined, we'd need to integrate negative power. 
+    // Integrating power in Influx 1.x without Flux is hard (needs continuous queries or complex math).
+
+    // For V1 simplicity: We support ONLY if 'gridExportSensorId' is configured and assume it is a kWh Counter.
+    // If it's W/kW power, user needs a Riemann Sum helper in HA.
+    // Let's try to support 'spread' on it.
+
+    // If only 'gridPowerSensorId' (Combined) is available, we cannot easily calculate export kWh in pure InfluxQL simply.
+    // So we will only execute if `gridExportSensorId` is present.
+
+    let exportKwh = 0;
+
+    if (settings.gridExportSensorId) {
+        // Try Spread (Counter)
+        // If it's a power sensor, 'spread' is meaningless. 
+        // We'll trust the user to provide a Counter for "Exported Energy".
+        const usageQuery = `
+            SELECT spread("value") as usage 
+            FROM "kWh" 
+            WHERE "entity_id" = '${sanitize(settings.gridExportSensorId)}' 
+            AND time >= '${startTime}' AND time <= '${endTime}'
+        `;
+
+        try {
+            const res = await queryInflux(usageQuery);
+            if (res.results?.[0]?.series?.[0]?.values?.[0]) {
+                exportKwh = res.results[0].series[0].values[0][1] || 0;
+            }
+        } catch (e) {
+            console.error("[INFLUX] Error calculating export revenue:", e);
+        }
+    } else if (settings.gridPowerSensorId) {
+        // Fallback: If we have separate import/export counters usually, but if user provided POWER sensor for export?
+        // Hard to distinguish.
+        // Let's check if there is an Export COUNTER with same base name? No.
+        console.warn("[INFLUX] Grid Export Revenue requires a dedicated 'gridExportSensorId' (kWh Counter) to be accurate.");
+    }
+
+    return {
+        totalExportKwh: exportKwh,
+        revenue: exportKwh * exportPrice
+    };
+}

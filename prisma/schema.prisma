@@ -74,6 +74,7 @@ model SystemSettings {
   batteryLevelSensorId String? // Battery SOC %
   invertBatterySign Boolean  @default(true) // If true, invert battery power sign (negative=charging, positive=discharging)
   internalPrice     Float    @default(0.15)
+  gridExportPrice   Float    @default(0.08) // Price/Earnings for exported energy (EUR/kWh)
   gridFallbackPrice Float    @default(0.30) // Fallback price if dynamic price is missing
   globalGridBufferWatts Int  @default(200) // Default threshold (Watts) for "Internal Power" state
   

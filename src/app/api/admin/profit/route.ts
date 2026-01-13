@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getSystemStateHistory, calculateGranularCost, PricingRules } from '@/lib/influx';
+import { getSystemStateHistory, calculateGranularCost, PricingRules, calculateExportRevenue } from '@/lib/influx';
 
 export async function GET(req: NextRequest) {
     try {
@@ -94,18 +94,31 @@ export async function GET(req: NextRequest) {
             }
         }
 
+        // 6. Calculate Export Revenue
+        // V2: Add this to the "Total Profit" or show it separately? 
+        // User requested: "einspeisung ins netz auch gewinn"
+        // So we add it to the final total.
+        const exportStats = await calculateExportRevenue(start, end, systemSettings);
+
+        const exportRevenue = exportStats.revenue;
+        const exportKwh = exportStats.totalExportKwh;
+
+        const totalCombinedProfit = totalProfit + exportRevenue;
+
         // Sort by Profit
         userBreakdown.sort((a, b) => b.profit - a.profit);
 
         return NextResponse.json({
             success: true,
             data: {
-                totalProfit,
+                totalProfit: totalCombinedProfit, // Combined
+                profitInternal: totalProfit,      // Only from Users
+                profitExport: exportRevenue,      // Only from Grid
                 totalInternalKwh,
+                totalExportKwh: exportKwh,
                 userBreakdown
             }
         });
-
     } catch (error: any) {
         console.error("[PROFIT_API] Error:", error);
         return NextResponse.json({ error: error.message }, { status: 500 });

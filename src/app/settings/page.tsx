@@ -19,6 +19,7 @@ export default function SettingsPage() {
     const [sysSettings, setSysSettings] = useState({
         internalPrice: 0.15,
         gridFallbackPrice: 0.30,
+        gridExportPrice: 0.08,
         globalGridBufferWatts: 200
     });
     const [showSystemSettings, setShowSystemSettings] = useState(false);
@@ -59,6 +60,7 @@ export default function SettingsPage() {
                             setSysSettings({
                                 internalPrice: sysData.internalPrice,
                                 gridFallbackPrice: sysData.gridFallbackPrice,
+                                gridExportPrice: sysData.gridExportPrice,
                                 globalGridBufferWatts: sysData.globalGridBufferWatts
                             });
                             setShowSystemSettings(true);
@@ -236,6 +238,17 @@ export default function SettingsPage() {
                                     className="w-full mt-2 bg-white/5 border border-white/10 rounded-xl py-3 px-4 outline-none focus:border-primary/50 transition-all font-mono"
                                 />
                                 <p className="text-[10px] text-white/40 mt-1 ml-1">Lückenfüller wenn Preisdaten fehlen (2025 etc.)</p>
+                            </div>
+                            <div>
+                                <label className="text-xs font-bold uppercase tracking-widest text-white/40 ml-1">Einspeisevergütung (€)</label>
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    value={sysSettings.gridExportPrice}
+                                    onChange={(e) => setSysSettings({ ...sysSettings, gridExportPrice: parseFloat(e.target.value) })}
+                                    className="w-full mt-2 bg-white/5 border border-white/10 rounded-xl py-3 px-4 outline-none focus:border-primary/50 transition-all font-mono"
+                                />
+                                <p className="text-[10px] text-white/40 mt-1 ml-1">Gewinn pro eingespeister kWh</p>
                             </div>
                         </div>
                     </div>

@@ -92,9 +92,10 @@ export default function ProfitPage() {
             )}
 
             {/* KPI Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* KPI Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-                {/* Profit Card */}
+                {/* Total Profit Card */}
                 <div className="glass p-6 rounded-2xl border border-white/10 relative overflow-hidden group">
                     <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                         <TrendingUp className="w-32 h-32 text-green-500" />
@@ -106,16 +107,16 @@ export default function ProfitPage() {
                             </div>
                             <h3 className="text-lg font-medium text-white/80">Gesamtgewinn</h3>
                         </div>
-                        <div className="text-4xl font-bold text-green-400 mt-2">
+                        <div className="text-3xl font-bold text-green-400 mt-2">
                             {stats ? fmtMoney(stats.totalProfit) : "..."}
                         </div>
-                        <p className="text-white/40 text-sm mt-1">
-                            Im ausgewählten Zeitraum
+                        <p className="text-white/40 text-[10px] mt-1">
+                            Interner Verkauf + Einspeisung
                         </p>
                     </div>
                 </div>
 
-                {/* Energy Card */}
+                {/* Energy Card (Internal) */}
                 <div className="glass p-6 rounded-2xl border border-white/10 relative overflow-hidden group">
                     <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                         <Zap className="w-32 h-32 text-yellow-500" />
@@ -125,14 +126,35 @@ export default function ProfitPage() {
                             <div className="p-2 bg-yellow-500/20 rounded-lg">
                                 <Zap className="w-6 h-6 text-yellow-500" />
                             </div>
-                            <h3 className="text-lg font-medium text-white/80">Verkaufter Strom</h3>
+                            <h3 className="text-lg font-medium text-white/80">Intern Verkauft</h3>
                         </div>
-                        <div className="text-4xl font-bold text-yellow-400 mt-2">
-                            {stats ? fmtNum(stats.totalInternalKwh) : "..."} <span className="text-xl text-white/60">kWh</span>
+                        <div className="text-3xl font-bold text-yellow-400 mt-2">
+                            {stats ? fmtNum(stats.totalInternalKwh) : "..."} <span className="text-lg text-white/60">kWh</span>
                         </div>
-                        <p className="text-white/40 text-sm mt-1">
-                            Intern produziert & verbraucht
-                        </p>
+                        <div className="text-sm text-green-400 mt-1">
+                            +{stats ? fmtMoney(stats.profitInternal || 0) : "..."}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Export Card */}
+                <div className="glass p-6 rounded-2xl border border-white/10 relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                        <Zap className="w-32 h-32 text-blue-500" />
+                    </div>
+                    <div className="relative z-10">
+                        <div className="flex items-center gap-3 mb-2">
+                            <div className="p-2 bg-blue-500/20 rounded-lg">
+                                <Zap className="w-6 h-6 text-blue-500" />
+                            </div>
+                            <h3 className="text-lg font-medium text-white/80">Eingespeist</h3>
+                        </div>
+                        <div className="text-3xl font-bold text-blue-400 mt-2">
+                            {stats ? fmtNum(stats.totalExportKwh || 0) : "0"} <span className="text-lg text-white/60">kWh</span>
+                        </div>
+                        <div className="text-sm text-green-400 mt-1">
+                            +{stats ? fmtMoney(stats.profitExport || 0) : "..."}
+                        </div>
                     </div>
                 </div>
             </div>

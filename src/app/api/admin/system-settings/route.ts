@@ -19,6 +19,7 @@ export async function GET(req: NextRequest) {
             settings = await prisma.systemSettings.create({
                 data: {
                     internalPrice: 0.15,
+                    gridExportPrice: 0.08,
                     gridFallbackPrice: 0.30,
                     globalGridBufferWatts: 200
                 }
@@ -59,6 +60,7 @@ export async function PUT(req: NextRequest) {
 
         // Pricing
         if (data.internalPrice !== undefined) updateData.internalPrice = parseFloat(data.internalPrice);
+        if (data.gridExportPrice !== undefined) updateData.gridExportPrice = parseFloat(data.gridExportPrice);
         if (data.gridFallbackPrice !== undefined) updateData.gridFallbackPrice = parseFloat(data.gridFallbackPrice);
         if (data.globalGridBufferWatts !== undefined) updateData.globalGridBufferWatts = parseInt(data.globalGridBufferWatts);
 
@@ -83,6 +85,7 @@ export async function PUT(req: NextRequest) {
                     ...updateData,
                     // Set defaults for required fields if creating new
                     internalPrice: updateData.internalPrice || 0.15,
+                    gridExportPrice: updateData.gridExportPrice || 0.08,
                     gridFallbackPrice: updateData.gridFallbackPrice || 0.30,
                     globalGridBufferWatts: updateData.globalGridBufferWatts || 200,
                     invertBatterySign: updateData.invertBatterySign ?? true
