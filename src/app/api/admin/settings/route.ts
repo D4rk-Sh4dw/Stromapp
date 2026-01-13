@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
             console.log("Empty or invalid JSON body in settings POST", e);
         }
         const {
-            pvPowerSensorId, gridPowerSensorId, gridImportSensorId, gridExportSensorId,
+            pvPowerSensorId, gridPowerSensorId, gridImportSensorId, gridExportSensorId, gridExportKwhSensorId,
             internalPrice, gridFallbackPrice, batteryPowerSensorId, batteryLevelSensorId, globalGridBufferWatts,
             invertBatterySign,
             pdfCompanyName, pdfCompanyAddress, pdfFooterText, pdfLogoUrl
@@ -49,6 +49,7 @@ export async function POST(req: NextRequest) {
             gridPowerSensorId: gridPowerSensorId || null,
             gridImportSensorId: gridImportSensorId || null,
             gridExportSensorId: gridExportSensorId || null,
+            gridExportKwhSensorId: gridExportKwhSensorId || null,
             batteryPowerSensorId: batteryPowerSensorId || null,
             batteryLevelSensorId: batteryLevelSensorId || null,
             invertBatterySign: invertBatterySign ?? true, // Default to true
