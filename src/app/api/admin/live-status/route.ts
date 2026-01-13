@@ -83,7 +83,11 @@ export async function GET(req: NextRequest) {
 
         if (settings) {
             if (settings.pvPowerSensorId) system.pvPower = Math.abs(await getSensorValue(settings.pvPowerSensorId) || 0);
-            if (settings.batteryPowerSensorId) system.batteryPower = await getSensorValue(settings.batteryPowerSensorId) || 0;
+            if (settings.batteryPowerSensorId) {
+                let val = await getSensorValue(settings.batteryPowerSensorId) || 0;
+                if (settings.invertBatterySign) val = val * -1;
+                system.batteryPower = val;
+            }
             if (settings.batteryLevelSensorId) system.batteryLevel = await getSensorValue(settings.batteryLevelSensorId, false) || 0;
 
             if (settings.gridImportSensorId) {
