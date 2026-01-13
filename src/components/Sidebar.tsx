@@ -15,7 +15,8 @@ import {
     ChevronLeft,
     ChevronRight,
     X,
-    Menu
+    Menu,
+    TrendingUp
 } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -30,6 +31,7 @@ const navItems = [
     { name: "Live Kosten", href: "/live", icon: Zap },
     { name: "Historie", href: "/history", icon: BarChart3 },
     { name: "Rechnungen", href: "/bills", icon: FileText },
+    { name: "Gewinn", href: "/admin/profit", icon: TrendingUp, admin: true },
     { name: "Administration", href: "/admin", icon: ShieldCheck, admin: true },
     { name: "Einstellungen", href: "/settings", icon: Settings },
 ];
