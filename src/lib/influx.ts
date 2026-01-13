@@ -130,13 +130,15 @@ export async function calculateCost(
     }
 }
 
-// Get live stats, optionally using a dedicated power sensor (Watt/kW) or fallback to counter diff
+// Helper to determine live usage and cost now
 export async function getLiveStats(
     usageSensorId: string,
-    powerSensorId: string | null | undefined,
+    powerSensorId: string | null,
     priceSensorId: string,
     factor: number,
-    systemSettings?: any
+    systemSettings: any | null,
+    gridBufferKW: number = 0.2, // Default to 200W
+    enablePvBilling: boolean = true // Default to true
 ): Promise<{ usageKW: number; costPerHour: number; currentPrice: number; isLive: boolean }> {
     if (!INFLUX_URL) return { usageKW: 0, costPerHour: 0, currentPrice: 0, isLive: false };
 
@@ -219,7 +221,7 @@ export async function getLiveStats(
             // 2. Logic Check
             let useInternalPrice = false;
 
-            if (systemSettings) {
+            if (systemSettings && enablePvBilling) {
                 // Check Grid Import
                 // If Import Sensor is available, use it. Else Combined.
                 let gridValkW = 0;
@@ -248,14 +250,14 @@ export async function getLiveStats(
                 }
 
                 if (hasGridData) {
-                    // Logic: If Import > 0.2 kW -> Grid Price. Else -> Internal.
-                    if (gridValkW <= 0.2) {
+                    // Logic: If Import <= Buffer -> Internal.
+                    if (gridValkW <= gridBufferKW) {
                         useInternalPrice = true;
                     }
                 }
             }
 
-            if (useInternalPrice) return systemSettings.internalPrice;
+            if (useInternalPrice) return systemSettings?.internalPrice || 0.15;
             return currentGridPrice;
         })();
 

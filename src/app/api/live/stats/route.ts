@@ -30,6 +30,20 @@ export async function GET(req: NextRequest) {
         let priceCount = 0;
 
         // Process in parallel
+        // Fetch user to get PV settings
+        const user = await prisma.user.findUnique({
+            where: { id: targetUserId }
+        });
+
+        // Determine PV Logic Settings for Live View
+        const enablePvBilling = user?.enablePvBilling || false;
+        // If PV billing enabled, use user's custom buffer or global default (200W = 0.2kW)
+        // Note: LiveStats uses kW, settings usually W. 200W = 0.2kW.
+        // systemSettings.globalGridBufferWatts is in Watts.
+        const gridBufferKW = enablePvBilling
+            ? ((user?.customGridBuffer ?? systemSettings?.globalGridBufferWatts ?? 200) / 1000)
+            : -999.0; // Disable if PV off
+
         const promises = mappings.map(async (mapping) => {
             // Ignore pure container virtual meters (without sensor ID)
             if (mapping.isVirtual && !mapping.usageSensorId) return null;
@@ -39,13 +53,16 @@ export async function GET(req: NextRequest) {
                 mapping.powerSensorId, // Can be null
                 mapping.priceSensorId,
                 mapping.factor,
-                systemSettings
+                systemSettings,
+                gridBufferKW,
+                enablePvBilling
             );
         });
 
         const results = await Promise.all(promises);
 
-        const details: any[] = [];
+        const virtualGroups = new Map<string, any>();
+        const standaloneDetails: any[] = [];
 
         for (let i = 0; i < results.length; i++) {
             const res = results[i];
@@ -62,16 +79,50 @@ export async function GET(req: NextRequest) {
                     priceCount++;
                 }
 
-                details.push({
-                    label: mapping.label,
-                    usageKW: res.usageKW,
-                    costPerHour: res.costPerHour,
-                    currentPrice: res.currentPrice,
-                    isVirtual: mapping.isVirtual,
-                    isLive: res.isLive
-                });
+                if (mapping.isVirtual && mapping.virtualGroupId) {
+                    // Group Logic
+                    const groupId = mapping.virtualGroupId;
+                    if (!virtualGroups.has(groupId)) {
+                        // Create initial group entry
+                        // Clean label: "My Meter - Component A" -> "My Meter"
+                        const cleanLabel = mapping.label.includes(' - ') ? mapping.label.split(' - ').slice(0, -1).join(' - ') : mapping.label;
+
+                        virtualGroups.set(groupId, {
+                            label: cleanLabel,
+                            usageKW: 0,
+                            costPerHour: 0,
+                            currentPrice: res.currentPrice, // Assume same price for group
+                            isVirtual: true,
+                            isLive: res.isLive, // If any part is live, group is live? Or strictly all? Let's say if one is live.
+                            componentCount: 0
+                        });
+                    }
+
+                    const group = virtualGroups.get(groupId);
+                    group.usageKW += res.usageKW;
+                    group.costPerHour += res.costPerHour;
+                    group.componentCount++;
+                    // Keep 'isLive' true if any component is live (simple logic)
+                    if (res.isLive) group.isLive = true;
+
+                } else {
+                    standaloneDetails.push({
+                        label: mapping.label,
+                        usageKW: res.usageKW,
+                        costPerHour: res.costPerHour,
+                        currentPrice: res.currentPrice,
+                        isVirtual: mapping.isVirtual,
+                        isLive: res.isLive
+                    });
+                }
             }
         }
+
+        // Combine details
+        const details = [
+            ...standaloneDetails,
+            ...Array.from(virtualGroups.values())
+        ];
 
         const effectivePrice = priceCount > 0 ? (avgPrice / priceCount) : 0.28;
 
