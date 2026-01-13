@@ -1,7 +1,12 @@
 import { SignJWT, jwtVerify } from 'jose';
 
+const secret = process.env.JWT_SECRET;
+if (!secret && process.env.NODE_ENV === 'production') {
+    throw new Error('JWT_SECRET is not defined in environment variables');
+}
+
 const JWT_SECRET = new TextEncoder().encode(
-    process.env.JWT_SECRET || 'super-secret-key'
+    secret || 'super-secret-key-dev-only-do-not-use-in-prod'
 );
 
 export interface TokenPayload {
