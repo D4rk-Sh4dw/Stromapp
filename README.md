@@ -28,11 +28,14 @@ cp .env.example .env
 
 Bearbeite die `.env` Datei mit deinen Daten:
 
-```ini
-# --- DATENBANK (SQLite) ---
-DATABASE_URL="file:./dev.db"
-PRISMA_CLIENT_ENGINE_TYPE="library"
-PRISMA_CLI_QUERY_ENGINE_TYPE="library"
+# --- DATENBANK (PostgreSQL) ---
+# Diese Werte werden von Docker Compose genutzt
+POSTGRES_USER="stromapp"
+POSTGRES_PASSWORD="securepassword"
+POSTGRES_DB="stromapp"
+
+# Für lokale Entwicklung (falls du nicht Docker Compose nutzt):
+DATABASE_URL="postgresql://stromapp:securepassword@localhost:5432/stromapp?schema=public"
 
 # --- INFLUXDB (z.B. Home Assistant) ---
 INFLUXDB_URL="http://192.168.1.10:8086"
