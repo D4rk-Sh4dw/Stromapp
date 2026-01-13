@@ -16,7 +16,7 @@ fi
 
 if [ $HAS_TABLES -eq 0 ]; then
     echo "📦 Database empty or not initialized. Setting up..."
-    npx prisma db push --skip-generate
+    npx prisma db push
     npx prisma db seed
     echo "✅ Database initialized!"
 else
