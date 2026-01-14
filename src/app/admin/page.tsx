@@ -589,6 +589,8 @@ export default function AdminPanel() {
         setNewMapping({ label: "", usageSensorId: "", powerSensorId: "", priceSensorId: "", factor: 1.0, targetUserIds: [] });
     };
 
+    const [showDebugView, setShowDebugView] = React.useState(false);
+
     const renderBillDetails = (bill: Bill) => {
         if (!bill.mappingSnapshot) return (
             <tr className="border-b border-white/5">
@@ -600,7 +602,27 @@ export default function AdminPanel() {
         );
 
         try {
-            const data = JSON.parse(bill.mappingSnapshot);
+            const parsed = JSON.parse(bill.mappingSnapshot);
+
+            // Handle new format { user: [...], debug: [...] } or legacy format [...]
+            let data;
+            if (parsed.user && parsed.debug) {
+                // New format: choose based on toggle
+                data = showDebugView ? parsed.debug : parsed.user;
+            } else if (Array.isArray(parsed)) {
+                // Legacy format: use as-is
+                data = parsed;
+            } else {
+                return (
+                    <tr className="border-b border-white/5">
+                        <td className="p-4">Stromverbrauch (Übersicht)</td>
+                        <td className="p-4 text-right">{bill.totalUsage.toFixed(2)} kWh</td>
+                        <td className="p-4 text-right">-</td>
+                        <td className="p-4 text-right">{bill.totalAmount.toFixed(2)} €</td>
+                    </tr>
+                );
+            }
+
             if (Array.isArray(data) && data.length > 0 && data[0].usage !== undefined) {
                 return data.map((d: any, i: number) => (
                     <React.Fragment key={i}>
@@ -1640,13 +1662,25 @@ export default function AdminPanel() {
                                 <FileText className="w-5 h-5 text-primary" />
                                 Abrechnungsverwaltung
                             </h2>
-                            <button
-                                onClick={() => setShowBillModal(true)}
-                                className="flex items-center gap-2 px-4 py-2 bg-primary/20 text-primary border border-primary/20 rounded-xl hover:bg-primary/30 transition-all text-sm font-medium"
-                            >
-                                <FileText className="w-4 h-4" />
-                                Abrechnung generieren
-                            </button>
+                            <div className="flex items-center gap-3">
+                                <button
+                                    onClick={() => setShowDebugView(!showDebugView)}
+                                    className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-all text-xs font-medium ${showDebugView
+                                            ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
+                                            : 'bg-white/5 text-white/40 border border-white/10 hover:bg-white/10'
+                                        }`}
+                                    title="Zeigt alle Komponenten virtueller Zähler (für Debugging)"
+                                >
+                                    {showDebugView ? '🔍 Debug-Ansicht' : '👁️ User-Ansicht'}
+                                </button>
+                                <button
+                                    onClick={() => setShowBillModal(true)}
+                                    className="flex items-center gap-2 px-4 py-2 bg-primary/20 text-primary border border-primary/20 rounded-xl hover:bg-primary/30 transition-all text-sm font-medium"
+                                >
+                                    <FileText className="w-4 h-4" />
+                                    Abrechnung generieren
+                                </button>
+                            </div>
                         </div>
 
                         <div className="glass overflow-hidden rounded-[32px] border border-white/5">

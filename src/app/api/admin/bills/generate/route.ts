@@ -206,7 +206,10 @@ export async function POST(req: NextRequest) {
                 totalUsage,
                 totalAmount,
                 profit,
-                mappingSnapshot: JSON.stringify(aggregatedDetails),
+                mappingSnapshot: JSON.stringify({
+                    user: aggregatedDetails,  // Aggregated view for end users
+                    debug: details             // Detailed view for admin debugging
+                }),
                 pdfUrl: null
             }
         });
