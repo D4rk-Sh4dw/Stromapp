@@ -549,21 +549,23 @@ export default function AdminPanel() {
     const handleDeleteGroup = async (group: any[]) => {
         if (!confirm(`Möchten Sie diesen virtuellen Zähler (${group.length} Komponenten) wirklich löschen?`)) return;
 
-        let successCount = 0;
-        for (const m of group) {
-            try {
-                // Direct fetch without confirm
-                await fetch(`/api/admin/mappings/${m.id}`, { method: "DELETE" });
-                successCount++;
-            } catch (e) {
-                console.error("Failed to delete mapping part:", m.id, e);
-            }
-        }
+        try {
+            const ids = group.map(m => m.id);
+            const res = await fetch(`/api/admin/mappings`, {
+                method: "DELETE",
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ids })
+            });
 
-        if (successCount > 0) {
-            fetchMappings();
-        } else {
-            alert("Löschen fehlgeschlagen.");
+            if (res.ok) {
+                fetchMappings();
+            } else {
+                const data = await res.json();
+                alert(data.error || "Löschen fehlgeschlagen.");
+            }
+        } catch (e) {
+            console.error("Failed to delete group:", e);
+            alert("Fehler beim Löschen.");
         }
     };
 
@@ -944,10 +946,11 @@ export default function AdminPanel() {
 
                                             mappings.forEach(m => {
                                                 if (m.isVirtual && m.virtualGroupId) {
-                                                    if (!groupedMappings.has(m.virtualGroupId)) {
-                                                        groupedMappings.set(m.virtualGroupId, []);
+                                                    const key = `${m.virtualGroupId}_${m.user?.id || 'unknown'}`;
+                                                    if (!groupedMappings.has(key)) {
+                                                        groupedMappings.set(key, []);
                                                     }
-                                                    groupedMappings.get(m.virtualGroupId)?.push(m);
+                                                    groupedMappings.get(key)?.push(m);
                                                 } else {
                                                     standaloneMappings.push(m);
                                                 }
@@ -1036,11 +1039,7 @@ export default function AdminPanel() {
                                                             </td>
                                                             <td className="px-6 py-4 text-right flex justify-end gap-2">
                                                                 <button
-                                                                    onClick={() => {
-                                                                        if (confirm(`Möchten Sie den virtuellen Zähler "${groupLabel}" für ALLE Benutzer wirklich löschen?`)) {
-                                                                            group.forEach((m: any) => handleDeleteMapping(m.id));
-                                                                        }
-                                                                    }}
+                                                                    onClick={() => handleDeleteGroup(group)}
                                                                     className="p-2 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
                                                                     title="Ganze Gruppe löschen"
                                                                 >

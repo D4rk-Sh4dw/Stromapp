@@ -58,3 +58,28 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
+
+export async function DELETE(req: NextRequest) {
+    try {
+        const userId = req.headers.get('x-user-id');
+        const userRole = req.headers.get('x-user-role');
+        if (!userId || userRole !== 'ADMIN') return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+
+        const body = await req.json();
+        const { ids } = body;
+
+        if (!ids || !Array.isArray(ids) || ids.length === 0) {
+            return NextResponse.json({ error: 'No IDs provided' }, { status: 400 });
+        }
+
+        const result = await prisma.sensorMapping.deleteMany({
+            where: {
+                id: { in: ids }
+            }
+        });
+
+        return NextResponse.json({ count: result.count });
+    } catch (error: any) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+}
