@@ -662,7 +662,7 @@ export async function calculateExportRevenue(
     end: Date,
     settings: any // SystemSettings
 ): Promise<{ totalExportKwh: number; revenue: number }> {
-    if (!INFLUX_URL || (!settings.gridExportSensorId && !settings.gridPowerSensorId)) {
+    if (!INFLUX_URL || !settings.gridExportKwhSensorId) {
         return { totalExportKwh: 0, revenue: 0 };
     }
 
@@ -692,14 +692,14 @@ export async function calculateExportRevenue(
 
     let exportKwh = 0;
 
-    if (settings.gridExportSensorId) {
+    if (settings.gridExportKwhSensorId) {
         // Try Last Delta (Counter)
         // Calculating total export for the period: Last - First.
         try {
             const q = `
                 SELECT first("value") as f, last("value") as l 
                 FROM "kWh" 
-                WHERE "entity_id" = '${sanitize(settings.gridExportSensorId)}' 
+                WHERE "entity_id" = '${sanitize(settings.gridExportKwhSensorId)}' 
                 AND "value" > 0
                 AND time >= '${startTime}' AND time <= '${endTime}'
              `;
