@@ -144,6 +144,7 @@ export async function POST(req: NextRequest) {
                     virtualGroups.set(groupId, {
                         ...detail,
                         label: label, // Use the base label (before " - SensorName")
+                        factor: undefined, // Don't show factor for aggregated virtual meters
                         isVirtualGroup: true,
                         // Initialize sums
                         usage: 0,
