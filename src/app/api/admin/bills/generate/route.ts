@@ -128,49 +128,8 @@ export async function POST(req: NextRequest) {
         }));
 
         // Create Bill Record
-        // AGGREGATION LOGIC: Group virtual sensors by virtualGroupId
-        const aggregatedDetails: any[] = [];
-        const virtualGroups = new Map<string, any>();
-
-        for (const detail of details) {
-            // Find mapping to check for virtualGroupId
-            const mapping = mappings.find(m => m.usageSensorId === detail.sensorId);
-            const groupId = mapping?.virtualGroupId;
-
-            if (groupId) {
-                if (!virtualGroups.has(groupId)) {
-                    // Initialize group
-                    const label = mapping?.label.split(' - ')[0] || mapping?.label || "Virtual Meter";
-                    virtualGroups.set(groupId, {
-                        ...detail,
-                        label: label, // Use the base label (before " - SensorName")
-                        factor: undefined, // Don't show factor for aggregated virtual meters
-                        isVirtualGroup: true,
-                        // Initialize sums
-                        usage: 0,
-                        cost: 0,
-                        usageInternal: 0,
-                        costInternal: 0,
-                        usageExternal: 0,
-                        costExternal: 0
-                    });
-                }
-
-                // Add to sums
-                const group = virtualGroups.get(groupId);
-                group.usage += detail.usage;
-                group.cost += detail.cost;
-                group.usageInternal += detail.usageInternal;
-                group.costInternal += detail.costInternal;
-                group.usageExternal += detail.usageExternal;
-                group.costExternal += detail.costExternal;
-            } else {
-                aggregatedDetails.push(detail);
-            }
-        }
-
-        // Add virtual groups to final details
-        virtualGroups.forEach(group => aggregatedDetails.push(group));
+        // REVERT: Saving raw details to ensure data integrity/visibility
+        // We will handle aggregation in frontend later or debug the backend logic.
 
         // Calculate Export Revenue (if configured)
         let exportRevenue = 0;
@@ -206,10 +165,7 @@ export async function POST(req: NextRequest) {
                 totalUsage,
                 totalAmount,
                 profit,
-                mappingSnapshot: JSON.stringify({
-                    user: aggregatedDetails,  // Aggregated view for end users
-                    debug: details             // Detailed view for admin debugging
-                }),
+                mappingSnapshot: JSON.stringify(details), // Save RAW details
                 pdfUrl: null
             }
         });
