@@ -1464,6 +1464,19 @@ export default function AdminPanel() {
                             </div>
 
                             <form onSubmit={handleAddVirtualMeter} className="space-y-6">
+                                <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4 flex gap-3 text-yellow-200">
+                                    <AlertTriangle className="w-5 h-5 shrink-0 text-yellow-400" />
+                                    <div className="text-sm">
+                                        <p className="font-bold mb-1">Achtung: Doppelte Abrechnung vermeiden!</p>
+                                        <p className="opacity-80 leading-relaxed">
+                                            Die Sensoren, die Sie hier hinzufügen, bleiben als eigenständige Mappings bestehen.
+                                            Das System summiert <u>alle</u> aktiven Mappings (physisch + virtuell).
+                                        </p>
+                                        <p className="opacity-80 mt-2">
+                                            <strong>Empfehlung:</strong> Löschen oder deaktivieren Sie nach der Erstellung dieses virtuellen Zählers die ursprünglichen Einzel-Mappings, falls diese nicht zusätzlich berechnet werden sollen.
+                                        </p>
+                                    </div>
+                                </div>
                                 <div>
                                     <label className="text-xs font-bold text-white/40 ml-1 mb-2 block">Benutzer zuweisen (Mehrfachauswahl möglich)</label>
                                     <div className="bg-white/5 border border-white/10 rounded-2xl p-2 max-h-40 overflow-y-auto custom-scrollbar">
