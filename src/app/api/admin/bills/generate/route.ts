@@ -122,7 +122,10 @@ export async function POST(req: NextRequest) {
                     usageInternal: res.usageInternal,
                     usageExternal: res.usageExternal,
                     costInternal: res.costInternal,
-                    costExternal: res.costExternal
+                    costExternal: res.costExternal,
+                    // Virtual Meter Meta
+                    isVirtual: mapping.isVirtual,
+                    virtualGroupId: mapping.virtualGroupId
                 });
             }
         }));

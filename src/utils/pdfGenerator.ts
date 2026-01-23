@@ -53,42 +53,97 @@ export const generateBillPDF = async (bill: any, userEmail: string, settings?: a
             // Check for new detailed format (has usage property)
             if (Array.isArray(data) && data.length > 0 && data[0].usage !== undefined) {
                 isDetailed = true;
-                data.forEach((d: any) => {
-                    let desc = d.label || "Unbekannter Zähler";
-                    if (d.factor && d.factor !== 1) desc += ` (Faktor x${d.factor})`;
 
-                    const avgPrice = d.usage > 0 ? (d.cost / d.usage) : 0;
+                // AGGREGATION LOGIC
+                // We group items by virtualGroupId if present.
+                const standalone: any[] = [];
+                const groups: { [key: string]: any[] } = {};
+
+                data.forEach((d: any) => {
+                    if (d.virtualGroupId) {
+                        if (!groups[d.virtualGroupId]) groups[d.virtualGroupId] = [];
+                        groups[d.virtualGroupId].push(d);
+                    } else {
+                        standalone.push(d);
+                    }
+                });
+
+                // Helper to process an item (standalone or aggregated)
+                const renderItem = (item: any, isGroup: boolean) => {
+                    let desc = item.label || "Unbekannter Zähler";
+
+                    // Clean label for groups (remove " - ComponentName")
+                    if (isGroup && desc.includes(" - ")) {
+                        desc = desc.split(" - ").slice(0, -1).join(" - "); // take prefix
+                        if (!desc) desc = item.label; // Fallback
+                    }
+
+                    if (!isGroup && item.factor && item.factor !== 1) {
+                        desc += ` (Faktor x${Number(item.factor).toFixed(3)})`;
+                    }
+
+                    const avgPrice = item.usage > 0 ? (item.cost / item.usage) : 0;
 
                     // Main Row
                     tableBody.push([
                         { content: desc, styles: { fontStyle: 'bold' } },
-                        `${d.usage.toFixed(2)} kWh`,
+                        `${item.usage.toFixed(2)} kWh`,
                         `${avgPrice.toFixed(4)} €`,
-                        `${d.cost.toFixed(2)} €`
+                        `${item.cost.toFixed(2)} €`
                     ]);
 
-                    // Granular Rows (Only if enabled via user setting)
+                    // Granular Rows (Only if enabled via user setting AND not 0)
                     if (bill.user?.showPvDetails) {
-                        if (d.usageInternal > 0 || d.costInternal > 0) {
-                            const p = d.usageInternal > 0 ? (d.costInternal / d.usageInternal) : 0;
+                        if (item.usageInternal > 0 || item.costInternal > 0) {
+                            const p = item.usageInternal > 0 ? (item.costInternal / item.usageInternal) : 0;
                             tableBody.push([
                                 { content: `   - Intern (Solar/Akku)`, styles: { textColor: [34, 197, 94] } }, // Greenish
-                                { content: `${d.usageInternal.toFixed(2)} kWh`, styles: { textColor: 100 } },
+                                { content: `${item.usageInternal.toFixed(2)} kWh`, styles: { textColor: 100 } },
                                 { content: `${p.toFixed(4)} €`, styles: { textColor: 100 } },
-                                { content: `${d.costInternal.toFixed(2)} €`, styles: { textColor: 100 } }
+                                { content: `${item.costInternal.toFixed(2)} €`, styles: { textColor: 100 } }
                             ]);
                         }
 
-                        if (d.usageExternal > 0 || d.costExternal > 0) {
-                            const p = d.usageExternal > 0 ? (d.costExternal / d.usageExternal) : 0;
+                        if (item.usageExternal > 0 || item.costExternal > 0) {
+                            const p = item.usageExternal > 0 ? (item.costExternal / item.usageExternal) : 0;
                             tableBody.push([
                                 { content: `   - Netzbezug (+Puffer)`, styles: { textColor: [234, 179, 8] } }, // Yellowish/Orange
-                                { content: `${d.usageExternal.toFixed(2)} kWh`, styles: { textColor: 100 } },
+                                { content: `${item.usageExternal.toFixed(2)} kWh`, styles: { textColor: 100 } },
                                 { content: `${p.toFixed(4)} €`, styles: { textColor: 100 } },
-                                { content: `${d.costExternal.toFixed(2)} €`, styles: { textColor: 100 } }
+                                { content: `${item.costExternal.toFixed(2)} €`, styles: { textColor: 100 } }
                             ]);
                         }
                     }
+                };
+
+                // Render Standalone
+                standalone.forEach(item => renderItem(item, false));
+
+                // Render Groups
+                Object.values(groups).forEach(group => {
+                    const first = group[0];
+                    const aggregated = {
+                        label: first.label,
+                        usage: 0,
+                        cost: 0,
+                        usageInternal: 0,
+                        costInternal: 0,
+                        usageExternal: 0,
+                        costExternal: 0,
+                        factor: 1, // Irrelevant for display of group
+                        virtualGroupId: first.virtualGroupId // Keep for ref
+                    };
+
+                    group.forEach(g => {
+                        aggregated.usage += g.usage;
+                        aggregated.cost += g.cost;
+                        aggregated.usageInternal += (g.usageInternal || 0);
+                        aggregated.costInternal += (g.costInternal || 0);
+                        aggregated.usageExternal += (g.usageExternal || 0);
+                        aggregated.costExternal += (g.costExternal || 0);
+                    });
+
+                    renderItem(aggregated, true);
                 });
             } else if (Array.isArray(data)) {
                 // Legacy format (just names)

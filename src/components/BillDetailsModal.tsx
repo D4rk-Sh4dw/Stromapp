@@ -31,18 +31,75 @@ export default function BillDetailsModal({ bill, onClose }: BillDetailsModalProp
         );
 
         try {
-            const data = JSON.parse(bill.mappingSnapshot);
-            if (Array.isArray(data) && data.length > 0 && data[0].usage !== undefined) {
-                return data.map((d: any, i: number) => (
+            const rawData = JSON.parse(bill.mappingSnapshot);
+            let processedData: any[] = [];
+
+            if (Array.isArray(rawData) && rawData.length > 0 && rawData[0].usage !== undefined) {
+                // AGGREGATION LOGIC
+                const standalone: any[] = [];
+                const groups: { [key: string]: any[] } = {};
+
+                rawData.forEach((d: any) => {
+                    if (d.virtualGroupId) {
+                        if (!groups[d.virtualGroupId]) groups[d.virtualGroupId] = [];
+                        groups[d.virtualGroupId].push(d);
+                    } else {
+                        standalone.push(d);
+                    }
+                });
+
+                // Process standalone
+                processedData = [...standalone];
+
+                // Process groups
+                Object.values(groups).forEach(group => {
+                    const first = group[0];
+                    const aggregated = {
+                        label: first.label,
+                        usage: 0,
+                        cost: 0,
+                        usageInternal: 0,
+                        costInternal: 0,
+                        usageExternal: 0,
+                        costExternal: 0,
+                        factor: 1,
+                        virtualGroupId: first.virtualGroupId,
+                        isAggregated: true
+                    };
+
+                    // Clean Label
+                    if (aggregated.label.includes(" - ")) {
+                        aggregated.label = aggregated.label.split(" - ").slice(0, -1).join(" - ");
+                        if (!aggregated.label) aggregated.label = first.label;
+                    }
+
+                    group.forEach(g => {
+                        aggregated.usage += g.usage;
+                        aggregated.cost += g.cost;
+                        aggregated.usageInternal += (g.usageInternal || 0);
+                        aggregated.costInternal += (g.costInternal || 0);
+                        aggregated.usageExternal += (g.usageExternal || 0);
+                        aggregated.costExternal += (g.costExternal || 0);
+                    });
+
+                    processedData.push(aggregated);
+                });
+            } else {
+                processedData = rawData; // Fallback for old format
+            }
+
+
+            if (Array.isArray(processedData) && processedData.length > 0) {
+                return processedData.map((d: any, i: number) => (
                     <React.Fragment key={i}>
                         <tr className="border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors">
                             <td className="p-4">
                                 {d.label}
-                                {d.factor && d.factor !== 1 && <span className="text-xs text-white/40 ml-2">(x{d.factor})</span>}
+                                {d.factor && d.factor !== 1 && !d.isAggregated && <span className="text-xs text-white/40 ml-2">(x{d.factor})</span>}
                             </td>
-                            <td className="p-4 text-right font-mono">{d.usage.toFixed(2)} kWh</td>
-                            <td className="p-4 text-right text-white/40 font-mono">{(d.cost / (d.usage || 1)).toFixed(4)} €</td>
-                            <td className="p-4 text-right font-bold text-primary">{d.cost.toFixed(2)} €</td>
+                            <td className="p-4 text-right font-mono">{d.usage?.toFixed(2)} kWh</td>
+                            <td className="p-4 text-right text-white/40 font-mono">{(d.usage > 0 ? d.cost / d.usage : 0).toFixed(4)} €</td>
+                            <td className="p-4 text-right font-bold text-primary">{d.cost?.toFixed(2)} €</td>
                         </tr>
                         {/* Granular Breakdown for User */}
                         {bill.user?.showPvDetails && (
@@ -54,7 +111,7 @@ export default function BillDetailsModal({ bill, onClose }: BillDetailsModalProp
                                             Intern (PV / Eigenstrom)
                                         </td>
                                         <td className="p-2 text-right font-mono text-white/60">{d.usageInternal?.toFixed(2)} kWh</td>
-                                        <td className="p-2 text-right font-mono text-white/40">{(d.costInternal / (d.usageInternal || 1)).toFixed(4)} €</td>
+                                        <td className="p-2 text-right font-mono text-white/40">{(d.usageInternal > 0 ? d.costInternal / d.usageInternal : 0).toFixed(4)} €</td>
                                         <td className="p-2 text-right text-green-400">{d.costInternal?.toFixed(2)} €</td>
                                     </tr>
                                 )}
@@ -65,7 +122,7 @@ export default function BillDetailsModal({ bill, onClose }: BillDetailsModalProp
                                             Netzbezug
                                         </td>
                                         <td className="p-2 text-right font-mono text-white/60">{d.usageExternal?.toFixed(2)} kWh</td>
-                                        <td className="p-2 text-right font-mono text-white/40">{(d.costExternal / (d.usageExternal || 1)).toFixed(4)} €</td>
+                                        <td className="p-2 text-right font-mono text-white/40">{(d.usageExternal > 0 ? d.costExternal / d.usageExternal : 0).toFixed(4)} €</td>
                                         <td className="p-2 text-right text-yellow-400">{d.costExternal?.toFixed(2)} €</td>
                                     </tr>
                                 )}
