@@ -72,15 +72,14 @@ export async function GET(req: NextRequest) {
                 // Double check to exclude purely organizational folders if they slipped through
                 if (mapping.isVirtual && !mapping.usageSensorId) continue;
 
-                totalUsageKW += res.usageKW;
-                totalCostPerHour += res.costPerHour;
                 if (res.currentPrice > 0) {
                     avgPrice += res.currentPrice;
                     priceCount++;
                 }
 
                 if (mapping.isVirtual && mapping.virtualGroupId) {
-                    // Group Logic
+                    // Group Logic – DO NOT add to totalUsageKW here to avoid double-counting.
+                    // The group total will be added to the global sum after the loop.
                     const groupId = mapping.virtualGroupId;
                     if (!virtualGroups.has(groupId)) {
                         // Create initial group entry
@@ -93,7 +92,7 @@ export async function GET(req: NextRequest) {
                             costPerHour: 0,
                             currentPrice: res.currentPrice, // Assume same price for group
                             isVirtual: true,
-                            isLive: res.isLive, // If any part is live, group is live? Or strictly all? Let's say if one is live.
+                            isLive: res.isLive,
                             componentCount: 0
                         });
                     }
@@ -106,6 +105,9 @@ export async function GET(req: NextRequest) {
                     if (res.isLive) group.isLive = true;
 
                 } else {
+                    // Standalone mapping: add directly to totals
+                    totalUsageKW += res.usageKW;
+                    totalCostPerHour += res.costPerHour;
                     standaloneDetails.push({
                         label: mapping.label,
                         usageKW: res.usageKW,
@@ -116,6 +118,12 @@ export async function GET(req: NextRequest) {
                     });
                 }
             }
+        }
+
+        // Add each virtual group's aggregated total to the global sum (only once per group)
+        for (const group of virtualGroups.values()) {
+            totalUsageKW += group.usageKW;
+            totalCostPerHour += group.costPerHour;
         }
 
         // Combine details

@@ -73,9 +73,10 @@ export async function calculateCost(
 
         // Query usage difference (Last - First)
         // using first/last avoids "spread" issues with 0-glitches
+        // Search multiple measurements to handle different HA/InfluxDB setups
         const usageQuery = `
             SELECT first("value") as f, last("value") as l
-            FROM "kWh" 
+            FROM "kWh", "Wh", "energy", "kWh_total", "sensor"
             WHERE "entity_id" = '${sanitize(usageSensorId)}' 
             AND "value" > 0
             AND time >= '${startTime}' AND time <= '${endTime}'
@@ -100,12 +101,15 @@ export async function calculateCost(
         // Parse usage
         if (usageResult.results?.[0]?.series?.[0]?.values?.[0]) {
             // value is [time, first, last]
+            const measureName: string = usageResult.results[0].series[0].name || '';
             const f = usageResult.results[0].series[0].values[0][1];
             const l = usageResult.results[0].series[0].values[0][2];
 
             if (typeof f === 'number' && typeof l === 'number') {
                 usage = l - f;
             }
+            // If sensor stores in Wh, convert to kWh
+            if (measureName === 'Wh') usage = usage / 1000;
             if (usage < 0) usage = 0; // Reset protection
         }
 
@@ -177,16 +181,17 @@ export async function getLiveStats(
             const minutes = 15;
             const queryTime = `time > now() - ${minutes}m`;
 
-            // Robust Delta: Last - First
+            // Robust Delta: Last - First - search in multiple measurements to handle different HA setups
             const usageQuery = `
                 SELECT first("value") as f, last("value") as l
-                FROM "kWh" 
+                FROM "kWh", "Wh", "energy", "kWh_total", "sensor"
                 WHERE "entity_id" = '${sanitize(usageSensorId)}' 
                 AND "value" > 0
                 AND ${queryTime}
             `;
             const res = await queryInflux(usageQuery);
             if (res.results?.[0]?.series?.[0]?.values?.[0]) {
+                const measureName: string = res.results[0].series[0].name || '';
                 const f = res.results[0].series[0].values[0][1];
                 const l = res.results[0].series[0].values[0][2];
                 let usageInPeriod = 0;
@@ -196,6 +201,11 @@ export async function getLiveStats(
                 }
 
                 if (usageInPeriod < 0) usageInPeriod = 0;
+
+                // If sensor stores in Wh, convert to kWh
+                if (measureName === 'Wh') {
+                    usageInPeriod = usageInPeriod / 1000;
+                }
 
                 // kW = kWh / hours
                 return usageInPeriod / (minutes / 60) * factor;
@@ -297,10 +307,10 @@ export async function getHistory(
         const startTime = start.toISOString();
         const endTime = end.toISOString();
 
-        // Daily usage
+        // Daily usage – search multiple measurements to handle different HA/InfluxDB setups
         const usageQuery = `
             SELECT last("value") as val 
-            FROM "kWh" 
+            FROM "kWh", "Wh", "energy", "kWh_total", "sensor"
             WHERE "entity_id" = '${sanitize(usageSensorId)}' 
             AND "value" > 0
             AND time >= '${startTime}' AND time <= '${endTime}'
