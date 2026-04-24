@@ -49,6 +49,14 @@ model SensorMapping {
   
   isVirtual       Boolean @default(false)
   virtualGroupId  String?
+
+  // Zeitliche Gültigkeit (für virtuelle Gruppen und Pauschal-Sensoren)
+  activeFrom      DateTime? // Sensor/Gruppe zählt erst ab diesem Datum
+  activeTo        DateTime? // Sensor/Gruppe zählt nur bis zu diesem Datum (optional)
+
+  // Pauschal-Sensor (kein Influx-Sensor nötig)
+  isFlatRate         Boolean @default(false)  // Wenn true: fixer kWh/Tag Wert statt Sensor
+  flatRateKwhPerDay  Float?                   // z.B. 6.0 → 6 kWh pro Tag
 }
 
 model Bill {

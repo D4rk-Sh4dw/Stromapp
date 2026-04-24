@@ -28,10 +28,18 @@ export async function POST(req: NextRequest) {
         if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
         const body = await req.json();
-        const { usageSensorId, priceSensorId, factor, label, isVirtual, virtualGroupId, targetUserId, powerSensorId } = body;
+        const {
+            usageSensorId, priceSensorId, factor, label,
+            isVirtual, virtualGroupId, targetUserId, powerSensorId,
+            activeFrom, activeTo, isFlatRate, flatRateKwhPerDay
+        } = body;
 
-        if (!usageSensorId || !priceSensorId || !label) {
+        // For flat-rate sensors, usageSensorId can be empty
+        if (!isFlatRate && (!usageSensorId || !priceSensorId || !label)) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+        }
+        if (isFlatRate && (!priceSensorId || !label)) {
+            return NextResponse.json({ error: 'Missing required fields for flat rate' }, { status: 400 });
         }
 
         // Admin can assign to specific user, otherwise assign to self
@@ -39,13 +47,18 @@ export async function POST(req: NextRequest) {
 
         const prismaData = {
             userId: ownerId,
-            usageSensorId,
+            usageSensorId: usageSensorId || '',
             powerSensorId: powerSensorId || null,
             priceSensorId,
             factor: (factor !== undefined && factor !== null && factor !== '') ? parseFloat(factor) : 1.0,
             label,
             isVirtual: isVirtual || false,
             virtualGroupId: virtualGroupId || null,
+            activeFrom: activeFrom ? new Date(activeFrom) : null,
+            activeTo: activeTo ? new Date(activeTo) : null,
+            isFlatRate: isFlatRate || false,
+            flatRateKwhPerDay: (flatRateKwhPerDay !== undefined && flatRateKwhPerDay !== null && flatRateKwhPerDay !== '')
+                ? parseFloat(flatRateKwhPerDay) : null,
         };
         console.log("[API] Creating mapping:", prismaData);
 

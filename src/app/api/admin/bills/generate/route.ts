@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { calculateGranularCost, getSystemStateHistory, PricingRules } from '@/lib/influx';
+import { calculateGranularCost, getSystemStateHistory, PricingRules, calcFlatRateUsage } from '@/lib/influx';
 
 export async function POST(req: NextRequest) {
     try {
@@ -93,12 +93,47 @@ export async function POST(req: NextRequest) {
         // Calculate for each mapping
         await Promise.all(mappings.map(async (mapping) => {
             // Skip purely virtual containers
-            if (mapping.isVirtual && !mapping.usageSensorId) return;
+            if (mapping.isVirtual && !mapping.usageSensorId && !mapping.isFlatRate) return;
 
-            // Note: If mapping.priceSensorId != defaultPriceSensor, we technically use the WRONG grid price in systemData.
-            // But usually users have 1 dynamic price provider.
-            // Improve later if needed.
+            // ── Flat-rate sensor: no InfluxDB query needed ──────────────────
+            if (mapping.isFlatRate && mapping.flatRateKwhPerDay) {
+                const usage = calcFlatRateUsage(
+                    mapping.flatRateKwhPerDay,
+                    mapping.factor,
+                    start,
+                    end,
+                    mapping.activeFrom,
+                    mapping.activeTo
+                );
+                if (usage <= 0) return;
 
+                // Use average grid price from systemData, or fallback
+                const avgGridPrice = systemData.length > 0
+                    ? systemData.reduce((s, d) => s + d.gridPrice, 0) / systemData.length
+                    : pricingRules.gridFallbackPrice;
+                const price = avgGridPrice > 0 ? avgGridPrice : pricingRules.gridFallbackPrice;
+                const cost = usage * price;
+
+                totalUsage += usage;
+                totalAmount += cost;
+                details.push({
+                    label: mapping.label,
+                    usage,
+                    cost,
+                    factor: mapping.factor,
+                    sensorId: 'flat-rate',
+                    usageInternal: 0,
+                    usageExternal: usage,
+                    costInternal: 0,
+                    costExternal: cost,
+                    isVirtual: mapping.isVirtual,
+                    virtualGroupId: mapping.virtualGroupId,
+                    isFlatRate: true,
+                });
+                return;
+            }
+
+            // ── Regular sensor (with optional activeFrom for the group) ─────
             const res = await calculateGranularCost(
                 mapping.usageSensorId,
                 mapping.factor,
@@ -106,7 +141,8 @@ export async function POST(req: NextRequest) {
                 end,
                 systemData,
                 pricingRules,
-                INTERVAL
+                INTERVAL,
+                mapping.activeFrom  // <-- pass activeFrom
             );
 
             if (res) {

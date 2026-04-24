@@ -45,8 +45,42 @@ export async function GET(req: NextRequest) {
             : -999.0; // Disable if PV off
 
         const promises = mappings.map(async (mapping) => {
-            // Ignore pure container virtual meters (without sensor ID)
-            if (mapping.isVirtual && !mapping.usageSensorId) return null;
+            // Ignore pure container virtual meters (without sensor ID) that are not flat-rate
+            if (mapping.isVirtual && !mapping.usageSensorId && !mapping.isFlatRate) return null;
+
+            // ── Flat-rate sensor: constant synthetic power ──────────────────
+            if (mapping.isFlatRate && mapping.flatRateKwhPerDay) {
+                const now = new Date();
+                // Check if we are within the active window
+                if (mapping.activeFrom && now < mapping.activeFrom) return null;
+                if (mapping.activeTo   && now > mapping.activeTo)   return null;
+
+                // kW = kWh/day ÷ 24h
+                const usageKW = (mapping.flatRateKwhPerDay * mapping.factor) / 24;
+
+                // Get current price for cost calculation
+                const priceQuery = `
+                    SELECT last("value") as price 
+                    FROM "EUR/kWh", "€/kWh", "ct/kWh", "price"
+                    WHERE "entity_id" = '${mapping.priceSensorId}'
+                `;
+                let currentPrice = 0;
+                try {
+                    const { queryInflux } = await import('@/lib/influx');
+                    const res = await queryInflux(priceQuery);
+                    if (res.results?.[0]?.series?.[0]?.values?.[0]) {
+                        currentPrice = res.results[0].series[0].values[0][1] || 0;
+                    }
+                } catch {}
+
+                return {
+                    usageKW,
+                    costPerHour: usageKW * currentPrice,
+                    currentPrice,
+                    isLive: false,
+                    _mapping: mapping,
+                };
+            }
 
             return getLiveStats(
                 mapping.usageSensorId,

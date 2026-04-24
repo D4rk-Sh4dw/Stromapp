@@ -50,6 +50,10 @@ interface Mapping {
     factor: number;
     isVirtual: boolean;
     virtualGroupId?: string;
+    activeFrom?: string;
+    activeTo?: string;
+    isFlatRate?: boolean;
+    flatRateKwhPerDay?: number;
     user?: { email: string; id: string };
 }
 
@@ -126,6 +130,11 @@ export default function AdminPanel() {
         divider: 1.0,
         priceSensorId: "",
         targetUserIds: [] as string[],
+        activeFrom: "",          // Globales Start-Datum für die Gruppe
+        // Pauschal-Sensor
+        isFlatRate: false,
+        flatRateKwhPerDay: 6.0,
+        activeTo: "",            // End-Datum (nur für Pauschal)
     });
 
     const [showBillModal, setShowBillModal] = useState(false);
@@ -390,35 +399,55 @@ export default function AdminPanel() {
             }
 
             const divider = virtualMeter.divider || 1.0;
-            const groupId = virtualMeter.label.toLowerCase().replace(/\s+/g, '_');
+            const groupId = virtualMeter.label.toLowerCase().replace(/\s+/g, '_') + '_' + Date.now();
 
-            // Loop through selected users
             for (const userId of virtualMeter.targetUserIds) {
-                for (const sensor of virtualMeter.sensors) {
-                    const sourceMapping = mappings.find(m => m.usageSensorId === sensor.sensorId);
-                    const sensorLabel = sourceMapping ? sourceMapping.label : sensor.sensorId;
-
-                    // Effective factor
-                    const opMult = sensor.operation === "subtract" ? -1 : 1;
-                    const effectiveFactor = (sensor.factor * opMult) / divider;
-
+                if (virtualMeter.isFlatRate) {
+                    // ── Pauschal-Sensor: ein einziges Mapping pro User ──
                     await fetch("/api/admin/mappings", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
-                            label: `${virtualMeter.label} - ${sensorLabel}`,
-                            usageSensorId: sensor.sensorId,
+                            label: virtualMeter.label,
+                            usageSensorId: '',
                             priceSensorId: virtualMeter.priceSensorId,
-                            factor: effectiveFactor,
+                            factor: 1.0 / divider,
                             isVirtual: true,
                             virtualGroupId: groupId,
                             targetUserId: userId,
+                            activeFrom: virtualMeter.activeFrom || null,
+                            activeTo: virtualMeter.activeTo || null,
+                            isFlatRate: true,
+                            flatRateKwhPerDay: virtualMeter.flatRateKwhPerDay,
                         }),
                     });
+                } else {
+                    // ── Normaler virtueller Zähler aus Sensor-Kombination ──
+                    for (const sensor of virtualMeter.sensors) {
+                        const sourceMapping = mappings.find(m => m.usageSensorId === sensor.sensorId);
+                        const sensorLabel = sourceMapping ? sourceMapping.label : sensor.sensorId;
+                        const opMult = sensor.operation === "subtract" ? -1 : 1;
+                        const effectiveFactor = (sensor.factor * opMult) / divider;
+
+                        await fetch("/api/admin/mappings", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                label: `${virtualMeter.label} - ${sensorLabel}`,
+                                usageSensorId: sensor.sensorId,
+                                priceSensorId: virtualMeter.priceSensorId,
+                                factor: effectiveFactor,
+                                isVirtual: true,
+                                virtualGroupId: groupId,
+                                targetUserId: userId,
+                                activeFrom: virtualMeter.activeFrom || null,
+                            }),
+                        });
+                    }
                 }
             }
             setShowVirtualModal(false);
-            setVirtualMeter({ label: "", sensors: [{ sensorId: "", factor: 1.0, operation: "add" }], divider: 1.0, priceSensorId: "", targetUserIds: [] });
+            setVirtualMeter({ label: "", sensors: [{ sensorId: "", factor: 1.0, operation: "add" }], divider: 1.0, priceSensorId: "", targetUserIds: [], activeFrom: "", activeTo: "", isFlatRate: false, flatRateKwhPerDay: 6.0 });
             fetchMappings();
         } catch (error) {
             console.error("Failed to add virtual meter:", error);
@@ -1427,6 +1456,7 @@ export default function AdminPanel() {
                                         </div>
                                     )}
                                 </div>
+                                )}
 
                                 <div className="pt-4 flex gap-3">
                                     <button type="button" onClick={closeUserModal} className="flex-1 py-3 text-white/40">
@@ -1521,7 +1551,72 @@ export default function AdminPanel() {
                                     />
                                 </div>
 
-                                <div className="space-y-4">
+                                {/* Aktiv ab (globales Datum für die Gruppe) */}
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label className="text-xs font-bold text-white/40 ml-1">Aktiv ab (optional)</label>
+                                        <input
+                                            type="date"
+                                            value={virtualMeter.activeFrom}
+                                            onChange={e => setVirtualMeter({ ...virtualMeter, activeFrom: e.target.value })}
+                                            className="w-full mt-1 bg-white/5 border border-white/10 rounded-2xl py-3 px-4 outline-none focus:border-primary/50 text-sm"
+                                        />
+                                        <p className="text-[10px] text-white/30 mt-1 ml-1">Zähler gilt erst ab diesem Datum</p>
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-white/40 ml-1">Aktiv bis (optional)</label>
+                                        <input
+                                            type="date"
+                                            value={virtualMeter.activeTo}
+                                            onChange={e => setVirtualMeter({ ...virtualMeter, activeTo: e.target.value })}
+                                            className="w-full mt-1 bg-white/5 border border-white/10 rounded-2xl py-3 px-4 outline-none focus:border-primary/50 text-sm"
+                                        />
+                                        <p className="text-[10px] text-white/30 mt-1 ml-1">Leer = unbegrenzt gültig</p>
+                                    </div>
+                                </div>
+
+                                {/* Pauschal-Toggle */}
+                                <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
+                                    <label className="flex items-center gap-3 cursor-pointer">
+                                        <div
+                                            onClick={() => setVirtualMeter({ ...virtualMeter, isFlatRate: !virtualMeter.isFlatRate })}
+                                            className={`w-10 h-6 rounded-full transition-colors relative ${virtualMeter.isFlatRate ? 'bg-primary' : 'bg-white/20'}`}
+                                        >
+                                            <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${virtualMeter.isFlatRate ? 'translate-x-5' : 'translate-x-1'}`} />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-bold">Pauschal-Sensor</p>
+                                            <p className="text-xs text-white/40">Fixer kWh/Tag Wert statt Shelly-Sensor</p>
+                                        </div>
+                                    </label>
+
+                                    {virtualMeter.isFlatRate && (
+                                        <div className="mt-4 space-y-3">
+                                            <div>
+                                                <label className="text-xs font-bold text-white/40 ml-1">kWh pro Tag</label>
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    <input
+                                                        type="number"
+                                                        step="0.1"
+                                                        min="0"
+                                                        value={virtualMeter.flatRateKwhPerDay}
+                                                        onChange={e => setVirtualMeter({ ...virtualMeter, flatRateKwhPerDay: parseFloat(e.target.value) })}
+                                                        className="flex-1 bg-white/5 border border-primary/30 rounded-2xl py-3 px-4 outline-none focus:border-primary/60 font-mono text-lg"
+                                                        required={virtualMeter.isFlatRate}
+                                                    />
+                                                    <span className="text-white/40 text-sm font-mono">kWh/Tag</span>
+                                                </div>
+                                                <p className="text-[10px] text-white/30 mt-1 ml-1">
+                                                    Mit Divider {virtualMeter.divider}: {(virtualMeter.flatRateKwhPerDay / (virtualMeter.divider || 1)).toFixed(2)} kWh/Tag pro Nutzer
+                                                    &nbsp;≈ {((virtualMeter.flatRateKwhPerDay / (virtualMeter.divider || 1)) / 24 * 1000).toFixed(0)} W konstant
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Sensoren (nur wenn NICHT Pauschal) */}
+                                {!virtualMeter.isFlatRate && (
                                     <div className="flex justify-between items-center">
                                         <label className="text-xs font-bold text-white/40">Sensoren & Rechenoperationen</label>
                                         <button
@@ -1589,6 +1684,7 @@ export default function AdminPanel() {
                                         </div>
                                     ))}
                                 </div>
+                                )} {/* end !isFlatRate sensor section */}
 
                                 <div>
                                     <label className="text-xs font-bold text-white/40 ml-1">Teilen durch (Divider)</label>
@@ -1616,6 +1712,7 @@ export default function AdminPanel() {
                                     placeholder="z.B. sensor.electricity_price"
                                 />
 
+                                {!virtualMeter.isFlatRate && (
                                 <div className="bg-white/5 rounded-2xl p-4 text-sm text-white/60 font-mono text-xs">
                                     <p className="font-bold text-white mb-2 font-sans">Formel Vorschau:</p>
                                     <div className="p-3 bg-black/20 rounded-xl overflow-x-auto whitespace-nowrap">
@@ -1629,6 +1726,7 @@ export default function AdminPanel() {
                                         ) / <span className="text-blue-300">{virtualMeter.divider}</span>
                                     </div>
                                 </div>
+                                )}
 
                                 <div className="pt-4 flex gap-3">
                                     <button type="button" onClick={() => setShowVirtualModal(false)} className="flex-1 py-3 text-white/40">

@@ -292,6 +292,24 @@ export async function getLiveStats(
     }
 }
 
+// ─── Flat-Rate Helper ────────────────────────────────────────────────────────
+// Calculates kWh for a flat-rate sensor over a date range,
+// clipped to the sensor's own activeFrom / activeTo window.
+export function calcFlatRateUsage(
+    kwhPerDay: number,
+    factor: number,
+    start: Date,
+    end: Date,
+    activeFrom?: Date | null,
+    activeTo?: Date | null
+): number {
+    const effectiveStart = activeFrom && activeFrom > start ? activeFrom : start;
+    const effectiveEnd   = activeTo  && activeTo  < end   ? activeTo  : end;
+    if (effectiveStart >= effectiveEnd) return 0;
+    const days = (effectiveEnd.getTime() - effectiveStart.getTime()) / 86_400_000;
+    return days * kwhPerDay * factor;
+}
+
 // Get historical stats (daily aggregation)
 export async function getHistory(
     usageSensorId: string,
@@ -299,12 +317,15 @@ export async function getHistory(
     start: Date,
     end: Date,
     interval: string = '1d',
-    fallbackPrice: number = 0
+    fallbackPrice: number = 0,
+    activeFrom?: Date | null
 ): Promise<{ time: string; usage: number; price: number }[]> {
     if (!INFLUX_URL) return [];
 
     try {
-        const startTime = start.toISOString();
+        // Respect activeFrom: never query before the sensor was active
+        const effectiveStart = activeFrom && activeFrom > start ? activeFrom : start;
+        const startTime = effectiveStart.toISOString();
         const endTime = end.toISOString();
 
         // Daily usage – search multiple measurements to handle different HA/InfluxDB setups
@@ -525,7 +546,8 @@ export async function calculateGranularCost(
     end: Date,
     systemData: SystemIntervalData[],
     rules: PricingRules,
-    interval: string = '1h'
+    interval: string = '1h',
+    activeFrom?: Date | null
 ): Promise<{
     totalCost: number;
     totalUsage: number;
@@ -536,7 +558,9 @@ export async function calculateGranularCost(
 }> {
     if (!INFLUX_URL) return { totalCost: 0, totalUsage: 0, usageInternal: 0, usageExternal: 0, costInternal: 0, costExternal: 0 };
 
-    const startTime = start.toISOString();
+    // Respect activeFrom: skip any data before the sensor went live
+    const effectiveStart = activeFrom && activeFrom > start ? activeFrom : start;
+    const startTime = effectiveStart.toISOString();
     const endTime = end.toISOString();
 
     const usageQuery = `

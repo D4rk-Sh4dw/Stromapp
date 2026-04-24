@@ -33,15 +33,42 @@ export async function GET(req: NextRequest) {
 
         await Promise.all(mappings.map(async (mapping) => {
             // Skip purely virtual containers
-            if (mapping.isVirtual && !mapping.usageSensorId) return;
+            if (mapping.isVirtual && !mapping.usageSensorId && !mapping.isFlatRate) return;
 
+            // ── Flat-rate sensor: synthetic daily entries ─────────────────────
+            if (mapping.isFlatRate && mapping.flatRateKwhPerDay) {
+                const effectiveStart = mapping.activeFrom && mapping.activeFrom > startDate ? mapping.activeFrom : startDate;
+                const effectiveEnd   = mapping.activeTo  && mapping.activeTo  < endDate   ? mapping.activeTo  : endDate;
+                if (effectiveStart >= effectiveEnd) return;
+
+                // Iterate day by day and add the flat rate
+                const cursor = new Date(effectiveStart);
+                while (cursor < effectiveEnd) {
+                    const dayUsage = mapping.flatRateKwhPerDay * mapping.factor;
+                    const key = cursor.toISOString().split('T')[0];
+
+                    if (!historyDataMap.has(key)) {
+                        historyDataMap.set(key, { usage: 0, cost: 0, date: cursor.toISOString() });
+                    }
+                    const entry = historyDataMap.get(key)!;
+                    entry.usage += dayUsage;
+                    // Cost will be approximated using fallback price (no per-day price available here)
+                    entry.cost += dayUsage * (systemSettings?.gridFallbackPrice || 0.30);
+
+                    cursor.setDate(cursor.getDate() + 1);
+                }
+                return;
+            }
+
+            // ── Regular InfluxDB sensor ───────────────────────────────────────
             const histList = await getHistory(
                 mapping.usageSensorId,
                 mapping.priceSensorId,
                 startDate,
                 endDate,
                 '1d',
-                systemSettings?.gridFallbackPrice || 0.30
+                systemSettings?.gridFallbackPrice || 0.30,
+                mapping.activeFrom  // <-- pass activeFrom
             );
 
             // Aggregate
@@ -63,6 +90,7 @@ export async function GET(req: NextRequest) {
                 entry.cost += dayCost;
             });
         }));
+
 
         // Now aggregate by Month for the frontend view (which seems to expect Monthly bars)
         // Frontend expects: { month: "Dezember", year: 2025, usage: ..., cost: ... }
