@@ -318,15 +318,18 @@ export async function getHistory(
     end: Date,
     interval: string = '1d',
     fallbackPrice: number = 0,
-    activeFrom?: Date | null
+    activeFrom?: Date | null,
+    activeTo?: Date | null
 ): Promise<{ time: string; usage: number; price: number }[]> {
     if (!INFLUX_URL) return [];
 
     try {
-        // Respect activeFrom: never query before the sensor was active
+        // Respect activeFrom / activeTo: clip the query window to the sensor's active period
         const effectiveStart = activeFrom && activeFrom > start ? activeFrom : start;
+        const effectiveEnd   = activeTo  && activeTo  < end   ? activeTo  : end;
+        if (effectiveStart >= effectiveEnd) return [];
         const startTime = effectiveStart.toISOString();
-        const endTime = end.toISOString();
+        const endTime = effectiveEnd.toISOString();
 
         // Daily usage – search multiple measurements to handle different HA/InfluxDB setups
         const usageQuery = `

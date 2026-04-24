@@ -68,7 +68,8 @@ export async function GET(req: NextRequest) {
                 endDate,
                 '1d',
                 systemSettings?.gridFallbackPrice || 0.30,
-                mapping.activeFrom  // <-- pass activeFrom
+                mapping.activeFrom,  // <-- activeFrom
+                mapping.activeTo     // <-- activeTo
             );
 
             // Aggregate
