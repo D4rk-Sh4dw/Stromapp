@@ -1616,6 +1616,7 @@ export default function AdminPanel() {
 
                                 {/* Sensoren (nur wenn NICHT Pauschal) */}
                                 {!virtualMeter.isFlatRate && (
+                                    <>
                                     <div className="flex justify-between items-center">
                                         <label className="text-xs font-bold text-white/40">Sensoren & Rechenoperationen</label>
                                         <button
@@ -1682,7 +1683,7 @@ export default function AdminPanel() {
                                             )}
                                         </div>
                                     ))}
-                                </div>
+                                    </>
                                 )} {/* end !isFlatRate sensor section */}
 
                                 <div>
