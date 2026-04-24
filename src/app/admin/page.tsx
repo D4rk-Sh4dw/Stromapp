@@ -1456,7 +1456,6 @@ export default function AdminPanel() {
                                         </div>
                                     )}
                                 </div>
-                                )}
 
                                 <div className="pt-4 flex gap-3">
                                     <button type="button" onClick={closeUserModal} className="flex-1 py-3 text-white/40">
