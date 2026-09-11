@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { calculateGranularCost, getSystemStateHistory, PricingRules, calcFlatRateUsage } from '@/lib/influx';
-import { calcAdvanceMonths, calcAdvancePayments } from '@/lib/billing';
+import { formatMonthKey, parseMonthKey } from '@/lib/billing';
+import { getAdvanceMonths } from '@/lib/advance';
 
 export async function POST(req: NextRequest) {
     try {
@@ -13,8 +14,9 @@ export async function POST(req: NextRequest) {
         }
 
         const body = await req.json();
-        // advancePayments: optionale manuelle Summe der Abschläge (überschreibt die automatische Berechnung)
-        const { targetUserId, startDate, endDate, advancePayments: advanceOverride } = body;
+        // advanceEntries: im Dialog bestätigte Zahlungen [{ month: "YYYY-MM", paidAmount, paidAt }]
+        // newAdvance: optional neuer Abschlag { amount, validFrom: "YYYY-MM" }
+        const { targetUserId, startDate, endDate, advanceEntries, newAdvance } = body;
 
         if (!targetUserId || !startDate || !endDate) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -32,6 +34,37 @@ export async function POST(req: NextRequest) {
         });
 
         if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
+
+        // Abschläge: fällige Monate laut Plan, Zahlungen wie im Dialog bestätigt (nicht übermittelt = offen)
+        const confirmed = new Map<string, any>(
+            (Array.isArray(advanceEntries) ? advanceEntries : []).map((e: any) => [e.month, e])
+        );
+        const advanceRows: { month: Date; expectedAmount: number; paidAmount: number; paidAt: Date | null }[] = [];
+        for (const m of await getAdvanceMonths(targetUserId, start, end)) {
+            if (m.alreadyBilled) continue;
+            const entry = confirmed.get(m.month);
+            const paidAmount = entry ? Number(entry.paidAmount) : 0;
+            const paidAt = entry?.paidAt ? new Date(entry.paidAt) : null;
+            if (!Number.isFinite(paidAmount) || paidAmount < 0 || (paidAt && isNaN(paidAt.getTime()))) {
+                return NextResponse.json({ error: `Ungültige Zahlung für ${formatMonthKey(m.month)}` }, { status: 400 });
+            }
+            advanceRows.push({
+                month: parseMonthKey(m.month)!,
+                expectedAmount: m.expected,
+                paidAmount,
+                paidAt: paidAmount > 0 ? paidAt : null,
+            });
+        }
+
+        let newAdvancePlan: { amount: number; validFrom: Date } | null = null;
+        if (newAdvance && newAdvance.amount !== "" && newAdvance.amount != null) {
+            const amount = Number(newAdvance.amount);
+            const validFrom = parseMonthKey(String(newAdvance.validFrom || ""));
+            if (!Number.isFinite(amount) || amount < 0 || !validFrom) {
+                return NextResponse.json({ error: 'Ungültiger neuer Abschlag' }, { status: 400 });
+            }
+            newAdvancePlan = { amount, validFrom };
+        }
 
         // Load settings
         const settings = await prisma.systemSettings.findFirst();
@@ -198,32 +231,35 @@ export async function POST(req: NextRequest) {
         // Profit = UserPayments - GridCost + ExportEarnings
         const profit = totalAmount - totalExternalCost + exportRevenue;
 
-        // Abschläge: manuelle Summe hat Vorrang, sonst monatlicher Abschlag × (anteilige) Monate
-        let advancePayments: number | null = null;
-        let advanceMonths: number | null = null;
-        if (advanceOverride !== undefined && advanceOverride !== null && advanceOverride !== "") {
-            advancePayments = Number(advanceOverride);
-            if (!Number.isFinite(advancePayments) || advancePayments < 0) {
-                return NextResponse.json({ error: 'Ungültige Abschlagssumme' }, { status: 400 });
-            }
-        } else if (user.monthlyAdvance) {
-            advanceMonths = calcAdvanceMonths(start, end);
-            advancePayments = calcAdvancePayments(user.monthlyAdvance, start, end);
-        }
+        // Nur tatsächlich gezahlte Abschläge werden abgezogen
+        const advancePayments = advanceRows.length > 0
+            ? Math.round(advanceRows.reduce((sum, r) => sum + r.paidAmount, 0) * 100) / 100
+            : null;
 
-        const bill = await prisma.bill.create({
-            data: {
-                userId: targetUserId,
-                startDate: start,
-                endDate: end,
-                totalUsage,
-                totalAmount,
-                profit,
-                mappingSnapshot: JSON.stringify(details), // Save RAW details
-                advancePayments,
-                advanceMonths,
-                pdfUrl: null
+        const bill = await prisma.$transaction(async (tx) => {
+            if (newAdvancePlan) {
+                // Gleicher Startmonat ersetzt einen bestehenden Eintrag
+                await tx.advancePlan.deleteMany({ where: { userId: targetUserId, validFrom: newAdvancePlan.validFrom } });
+                await tx.advancePlan.create({ data: { userId: targetUserId, ...newAdvancePlan } });
             }
+
+            return tx.bill.create({
+                data: {
+                    userId: targetUserId,
+                    startDate: start,
+                    endDate: end,
+                    totalUsage,
+                    totalAmount,
+                    profit,
+                    mappingSnapshot: JSON.stringify(details), // Save RAW details
+                    advancePayments,
+                    advanceEntries: { create: advanceRows },
+                    newAdvanceAmount: newAdvancePlan?.amount ?? null,
+                    newAdvanceFrom: newAdvancePlan?.validFrom ?? null,
+                    pdfUrl: null
+                },
+                include: { advanceEntries: { orderBy: { month: 'asc' } } }
+            });
         });
 
         return NextResponse.json(bill);

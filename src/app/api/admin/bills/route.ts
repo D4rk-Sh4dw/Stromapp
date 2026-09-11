@@ -17,7 +17,8 @@ export async function GET(req: NextRequest) {
             include: {
                 user: {
                     select: { email: true, showPvDetails: true }
-                }
+                },
+                advanceEntries: { orderBy: { month: 'asc' } }
             },
             orderBy: { createdAt: 'desc' }
         });

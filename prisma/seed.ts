@@ -6,6 +6,23 @@ config();
 const prisma = new PrismaClient();
 
 async function main() {
+    // Migration: alten Einzel-Abschlag (User.monthlyAdvance) in den Abschlagsplan übernehmen (idempotent)
+    const legacyAdvanceUsers = await prisma.user.findMany({
+        where: { monthlyAdvance: { not: null } },
+        select: { id: true, monthlyAdvance: true, _count: { select: { advancePlans: true } } }
+    });
+    for (const u of legacyAdvanceUsers) {
+        await prisma.$transaction([
+            ...(u._count.advancePlans === 0
+                ? [prisma.advancePlan.create({ data: { userId: u.id, amount: u.monthlyAdvance!, validFrom: null } })]
+                : []),
+            prisma.user.update({ where: { id: u.id }, data: { monthlyAdvance: null } }),
+        ]);
+    }
+    if (legacyAdvanceUsers.length > 0) {
+        console.log(`[SEED] Abschlag von ${legacyAdvanceUsers.length} Benutzer(n) in den Abschlagsplan übernommen`);
+    }
+
     // Check if ANY user exists in the database
     const userCount = await prisma.user.count();
 

@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
+import { parseAdvancePlans } from '@/lib/advance';
+
+const advancePlansSelect = {
+    select: { id: true, amount: true, validFrom: true },
+    orderBy: { validFrom: { sort: 'asc', nulls: 'first' } },
+} as const;
 
 // GET all users
 export async function GET(req: NextRequest) {
@@ -18,7 +24,7 @@ export async function GET(req: NextRequest) {
                 customGridBuffer: true,
                 enablePvBilling: true,
                 showPvDetails: true,
-                monthlyAdvance: true,
+                advancePlans: advancePlansSelect,
             }
         });
         return NextResponse.json(users);
@@ -30,7 +36,7 @@ export async function GET(req: NextRequest) {
 // POST create new user
 export async function POST(req: NextRequest) {
     try {
-        const { email, password, role, autoBilling, allowBatteryPricing, customInternalRate, customGridBuffer, enablePvBilling, showPvDetails, monthlyAdvance } = await req.json();
+        const { email, password, role, autoBilling, allowBatteryPricing, customInternalRate, customGridBuffer, enablePvBilling, showPvDetails, advancePlans: advancePlansInput } = await req.json();
 
         if (!email || !password) {
             return NextResponse.json({ error: 'E-Mail und Passwort sind erforderlich' }, { status: 400 });
@@ -40,6 +46,13 @@ export async function POST(req: NextRequest) {
         const existingUser = await prisma.user.findUnique({ where: { email } });
         if (existingUser) {
             return NextResponse.json({ error: 'Benutzer existiert bereits' }, { status: 409 });
+        }
+
+        let advancePlans;
+        try {
+            advancePlans = parseAdvancePlans(advancePlansInput) ?? [];
+        } catch (e: any) {
+            return NextResponse.json({ error: e.message }, { status: 400 });
         }
 
         const passwordHash = await bcrypt.hash(password, 10);
@@ -55,7 +68,7 @@ export async function POST(req: NextRequest) {
                 showPvDetails: !!showPvDetails,
                 customInternalRate: (customInternalRate !== "" && customInternalRate !== undefined) ? parseFloat(customInternalRate) : null,
                 customGridBuffer: (customGridBuffer !== "" && customGridBuffer !== undefined) ? parseInt(customGridBuffer) : null,
-                monthlyAdvance: (monthlyAdvance !== "" && monthlyAdvance !== undefined && monthlyAdvance !== null) ? parseFloat(monthlyAdvance) : null,
+                advancePlans: { create: advancePlans },
             },
             select: {
                 id: true,
@@ -68,7 +81,7 @@ export async function POST(req: NextRequest) {
                 customGridBuffer: true,
                 enablePvBilling: true,
                 showPvDetails: true,
-                monthlyAdvance: true,
+                advancePlans: advancePlansSelect,
             }
         });
 
