@@ -2,6 +2,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { X, FileText } from "lucide-react";
 import BillSettlement from "@/components/BillSettlement";
+import type { AdvanceEntry } from "@/lib/billing";
 
 interface Bill {
     id: string;
@@ -15,6 +16,9 @@ interface Bill {
     mappingSnapshot?: string;
     advancePayments?: number | null;
     advanceMonths?: number | null;
+    advanceEntries?: AdvanceEntry[];
+    newAdvanceAmount?: number | null;
+    newAdvanceFrom?: string | Date | null;
 }
 
 interface BillDetailsModalProps {

@@ -1,4 +1,4 @@
-import { describeAdvance, getBillBalance } from "@/lib/billing";
+import { describeAdvance, formatMonth, getBillBalance } from "@/lib/billing";
 
 export const generateBillPDF = async (bill: any, userEmail: string, settings?: any) => {
     const { default: jsPDF } = await import("jspdf");
@@ -201,10 +201,43 @@ export const generateBillPDF = async (bill: any, userEmail: string, settings?: a
     });
 
     // Total
-    const finalY = (doc as any).lastAutoTable.finalY + 10;
+    let finalY = (doc as any).lastAutoTable.finalY + 10;
+
+    // Advance payments per month
+    const advanceEntries: any[] = Array.isArray(bill.advanceEntries) ? bill.advanceEntries : [];
+    if (advanceEntries.length > 0) {
+        autoTable(doc, {
+            startY: finalY,
+            head: [["Abschlag", "Soll", "Gezahlt", "Zahldatum"]],
+            body: advanceEntries.map((e) => [
+                formatMonth(e.month),
+                `${e.expectedAmount.toFixed(2)} €`,
+                `${e.paidAmount.toFixed(2)} €`,
+                e.paidAt ? new Date(e.paidAt).toLocaleDateString('de-DE') : (e.paidAmount > 0 ? "-" : "offen"),
+            ]),
+            theme: 'grid',
+            headStyles: { fillColor: [59, 130, 246], textColor: 255, fontStyle: 'bold' },
+            styles: { fontSize: 9, cellPadding: 2 },
+            columnStyles: {
+                1: { halign: 'right' },
+                2: { halign: 'right' },
+                3: { halign: 'right' }
+            }
+        });
+        finalY = (doc as any).lastAutoTable.finalY + 10;
+    }
+
+    const balance = getBillBalance(bill);
+    const hasNewAdvance = bill.newAdvanceAmount != null && !!bill.newAdvanceFrom;
+
+    // Keep the total box together on one page (footer sits at y=280)
+    const boxHeight = (balance ? 35 : 12) + (hasNewAdvance ? 14 : 0);
+    if (finalY + boxHeight > 272) {
+        doc.addPage();
+        finalY = 20;
+    }
 
     // Draw Total Box (wider when advance payments are listed, so the label fits)
-    const balance = getBillBalance(bill);
     const boxX = balance ? 100 : 120;
     doc.setDrawColor(200);
     doc.line(boxX, finalY, 190, finalY);
@@ -232,10 +265,23 @@ export const generateBillPDF = async (bill: any, userEmail: string, settings?: a
         doc.line(boxX, finalY + 35, 190, finalY + 35);
     }
 
-    // Footer
+    if (hasNewAdvance) {
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+        doc.text(
+            `Ihr neuer monatlicher Abschlag ab ${formatMonth(bill.newAdvanceFrom)}: ${bill.newAdvanceAmount.toFixed(2)} €`,
+            20,
+            (balance ? finalY + 35 : finalY + 12) + 12
+        );
+    }
+
+    // Footer (on every page, bills with many advance months can span two pages)
     doc.setFontSize(8);
     doc.setTextColor(150);
-    doc.text(footerText, 105, 280, { align: "center" });
+    for (let page = 1; page <= doc.getNumberOfPages(); page++) {
+        doc.setPage(page);
+        doc.text(footerText, 105, 280, { align: "center" });
+    }
 
     doc.save(`Rechnung_${new Date(bill.startDate).toISOString().split('T')[0]}_strom.pdf`);
 };

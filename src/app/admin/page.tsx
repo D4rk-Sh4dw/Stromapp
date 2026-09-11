@@ -28,7 +28,9 @@ import EntitySearch from "@/components/EntitySearch";
 import { Activity } from "lucide-react";
 import { generateBillPDF } from "@/utils/pdfGenerator";
 import BillSettlement from "@/components/BillSettlement";
-import { calcAdvanceMonths, calcAdvancePayments, getBillBalance } from "@/lib/billing";
+import AdvancePlanEditor, { AdvancePlanRow } from "@/components/AdvancePlanEditor";
+import BillAdvanceSection, { BillAdvanceData } from "@/components/BillAdvanceSection";
+import { AdvanceEntry, getAdvanceForMonth, getBillBalance, toMonthKey } from "@/lib/billing";
 
 interface User {
     id: string;
@@ -41,7 +43,7 @@ interface User {
     customGridBuffer?: number;
     showPvDetails?: boolean;
     enablePvBilling?: boolean;
-    monthlyAdvance?: number | null;
+    advancePlans?: { id: string; amount: number; validFrom: string | null }[];
 }
 
 interface Mapping {
@@ -72,6 +74,9 @@ interface Bill {
     mappingSnapshot?: string;
     advancePayments?: number | null;
     advanceMonths?: number | null;
+    advanceEntries?: AdvanceEntry[];
+    newAdvanceAmount?: number | null;
+    newAdvanceFrom?: string | null;
 }
 
 export default function AdminPanel() {
@@ -127,7 +132,7 @@ export default function AdminPanel() {
         showPvDetails: false,
         customInternalRate: "" as number | "",
         customGridBuffer: "" as number | "",
-        monthlyAdvance: "" as number | "",
+        advancePlans: [] as AdvancePlanRow[],
     });
 
     const [virtualMeter, setVirtualMeter] = useState({
@@ -147,9 +152,9 @@ export default function AdminPanel() {
     const [newBill, setNewBill] = useState({
         targetUserId: "",
         startDate: new Date().getFullYear() + "-01-01",
-        endDate: new Date().toISOString().split('T')[0],
-        advancePayments: "", // leer = automatisch aus monatlichem Abschlag
+        endDate: new Date().toISOString().split('T')[0]
     });
+    const [billAdvance, setBillAdvance] = useState<BillAdvanceData | null>(null);
 
     useEffect(() => {
         checkAdminAccess();
@@ -471,11 +476,10 @@ export default function AdminPanel() {
             const res = await fetch("/api/admin/bills/generate", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(newBill),
+                body: JSON.stringify({ ...newBill, ...billAdvance }),
             });
             if (res.ok) {
                 setShowBillModal(false);
-                setNewBill({ ...newBill, advancePayments: "" });
                 alert("Abrechnung erfolgreich erstellt!");
                 setActiveTab('bills');
                 fetchBills();
@@ -501,7 +505,10 @@ export default function AdminPanel() {
             showPvDetails: user.showPvDetails || false,
             customInternalRate: user.customInternalRate ?? "" as any,
             customGridBuffer: user.customGridBuffer ?? "" as any,
-            monthlyAdvance: user.monthlyAdvance ?? "",
+            advancePlans: (user.advancePlans || []).map(p => ({
+                amount: p.amount,
+                validFrom: p.validFrom ? toMonthKey(new Date(p.validFrom)) : "",
+            })),
         });
         setEditingUserId(user.id);
         setShowUserModal(true);
@@ -519,7 +526,7 @@ export default function AdminPanel() {
             showPvDetails: false,
             customInternalRate: "",
             customGridBuffer: "",
-            monthlyAdvance: ""
+            advancePlans: []
         });
         setEditingUserId(null); // Keep setEditingUserId(null)
     };
@@ -1143,7 +1150,10 @@ export default function AdminPanel() {
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 text-sm font-mono">
-                                                {user.monthlyAdvance ? `${user.monthlyAdvance.toFixed(2)} € / Monat` : <span className="text-white/30">–</span>}
+                                                {(() => {
+                                                    const current = getAdvanceForMonth(user.advancePlans || [], toMonthKey(new Date()));
+                                                    return current !== null ? `${current.toFixed(2)} € / Monat` : <span className="text-white/30">–</span>;
+                                                })()}
                                             </td>
                                             <td className="px-6 py-4 text-white/40 text-sm">
                                                 {new Date(user.createdAt).toLocaleDateString('de-DE')}
@@ -1384,21 +1394,10 @@ export default function AdminPanel() {
                                     </div>
                                 </div>
 
-                                <div>
-                                    <label className="text-xs font-bold text-white/40 ml-1">Monatlicher Abschlag (€)</label>
-                                    <input
-                                        type="number"
-                                        step="0.01"
-                                        min="0"
-                                        placeholder="z.B. 50.00"
-                                        value={newUser.monthlyAdvance}
-                                        onChange={e => setNewUser({ ...newUser, monthlyAdvance: e.target.value === "" ? "" : parseFloat(e.target.value) })}
-                                        className="w-full mt-1 bg-white/5 border border-white/10 rounded-2xl py-3 px-4 outline-none focus:border-primary/50"
-                                    />
-                                    <p className="text-[10px] text-white/30 mt-1 ml-1 leading-tight">
-                                        Wird bei der Abrechnung pro (anteiligem) Monat vom Rechnungsbetrag abgezogen &rarr; Nachzahlung oder Guthaben. Leer lassen = kein Abschlag.
-                                    </p>
-                                </div>
+                                <AdvancePlanEditor
+                                    value={newUser.advancePlans}
+                                    onChange={rows => setNewUser({ ...newUser, advancePlans: rows })}
+                                />
 
                                 <div className="p-4 bg-white/5 rounded-2xl border border-white/5 space-y-4">
                                     <h4 className="font-bold text-sm text-white/60 flex items-center gap-2">
@@ -2138,7 +2137,7 @@ export default function AdminPanel() {
                         <motion.div
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
-                            className="relative glass w-full max-w-lg rounded-[40px] p-8 border-primary/20 shadow-2xl"
+                            className="relative glass w-full max-w-2xl rounded-[40px] p-8 border-primary/20 shadow-2xl max-h-[90vh] overflow-y-auto"
                         >
                             <div className="flex justify-between items-center mb-6">
                                 <h3 className="text-xl font-bold flex items-center gap-2">
@@ -2155,7 +2154,7 @@ export default function AdminPanel() {
                                     <label className="text-xs font-bold text-white/40 ml-1">Benutzer</label>
                                     <select
                                         value={newBill.targetUserId}
-                                        onChange={e => setNewBill({ ...newBill, targetUserId: e.target.value, advancePayments: "" })}
+                                        onChange={e => setNewBill({ ...newBill, targetUserId: e.target.value })}
                                         className="w-full mt-1 bg-white/5 border border-white/10 rounded-2xl py-3 px-4 outline-none focus:border-primary/50 text-white"
                                         required
                                     >
@@ -2195,32 +2194,12 @@ export default function AdminPanel() {
                                     </div>
                                 </div>
 
-                                {(() => {
-                                    const billUser = users.find(u => u.id === newBill.targetUserId);
-                                    const start = new Date(newBill.startDate);
-                                    const end = new Date(newBill.endDate);
-                                    const autoMonths = calcAdvanceMonths(start, end);
-                                    const autoSum = billUser?.monthlyAdvance ? calcAdvancePayments(billUser.monthlyAdvance, start, end) : null;
-                                    return (
-                                        <div>
-                                            <label className="text-xs font-bold text-white/40 ml-1">Geleistete Abschläge (€)</label>
-                                            <input
-                                                type="number"
-                                                step="0.01"
-                                                min="0"
-                                                value={newBill.advancePayments}
-                                                onChange={e => setNewBill({ ...newBill, advancePayments: e.target.value })}
-                                                placeholder={autoSum !== null ? autoSum.toFixed(2) : "Keine Abschläge"}
-                                                className="w-full mt-1 bg-white/5 border border-white/10 rounded-2xl py-3 px-4 outline-none focus:border-primary/50"
-                                            />
-                                            <p className="text-[10px] text-white/30 mt-1 ml-1 leading-tight">
-                                                {autoSum !== null
-                                                    ? `Automatisch: ${Number(autoMonths.toFixed(2))} × ${billUser!.monthlyAdvance!.toFixed(2)} € = ${autoSum.toFixed(2)} €. Nur ausfüllen, um die Summe manuell zu überschreiben.`
-                                                    : "Für diesen Benutzer ist kein monatlicher Abschlag hinterlegt. Optional manuell eintragen."}
-                                            </p>
-                                        </div>
-                                    );
-                                })()}
+                                <BillAdvanceSection
+                                    userId={newBill.targetUserId}
+                                    startDate={newBill.startDate}
+                                    endDate={newBill.endDate}
+                                    onChange={setBillAdvance}
+                                />
 
                                 <div className="pt-4 flex gap-3">
                                     <button type="button" onClick={() => setShowBillModal(false)} className="flex-1 py-3 text-white/40">

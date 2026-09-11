@@ -35,7 +35,8 @@ model User {
   showPvDetails       Boolean @default(false) // If true, PV/Internal details are shown in PDF
 
   // Abschlag
-  monthlyAdvance      Float?  // Monatlicher Abschlag (€), wird bei der Abrechnung verrechnet
+  monthlyAdvance      Float?  // VERALTET: wird beim Start per Seed in AdvancePlan übernommen
+  advancePlans        AdvancePlan[]
 }
 
 model SensorMapping {
@@ -73,9 +74,35 @@ model Bill {
   profit      Float? // Revenue - GridCost (Nullable for old bills)
   pdfUrl      String?
   mappingSnapshot String? // JSON snapshot of mappings
-  advancePayments Float?  // Summe der geleisteten Abschläge im Zeitraum (null = keine Abschläge)
-  advanceMonths   Float?  // Anzahl (anteiliger) Monate, null bei manuell eingetragener Summe
+  advancePayments Float?  // Summe der tatsächlich gezahlten Abschläge (null = keine Abschläge)
+  advanceMonths   Float?  // Nur Alt-Rechnungen: Anzahl Monate der pauschalen Berechnung
+  advanceEntries  AdvancePayment[]
+  newAdvanceAmount Float?    // Mit dieser Rechnung festgelegter neuer Abschlag (€/Monat)
+  newAdvanceFrom   DateTime? // ... gültig ab (Monatserster, UTC)
   createdAt   DateTime @default(now())
+}
+
+// Abschlagsplan: Betrag gilt ab validFrom bis zum nächsten Eintrag
+model AdvancePlan {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount    Float
+  validFrom DateTime? // Monatserster (UTC), null = seit Beginn
+  createdAt DateTime  @default(now())
+}
+
+// Abschlagszahlung eines Monats, beim Erstellen der Rechnung bestätigt
+model AdvancePayment {
+  id             String    @id @default(cuid())
+  billId         String
+  bill           Bill      @relation(fields: [billId], references: [id], onDelete: Cascade)
+  month          DateTime  // Monatserster (UTC)
+  expectedAmount Float     // Soll laut Abschlagsplan
+  paidAmount     Float     // Tatsächlich gezahlt (0 = offen)
+  paidAt         DateTime?
+
+  @@unique([billId, month])
 }
 
 model SystemSettings {

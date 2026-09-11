@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { parseAdvancePlans } from '@/lib/advance';
 
 export async function PUT(
     req: NextRequest,
@@ -8,7 +9,14 @@ export async function PUT(
     try {
         const { id } = await params;
         const body = await req.json();
-        const { role, autoBilling, email, allowBatteryPricing, customInternalRate, customGridBuffer, enablePvBilling, showPvDetails, monthlyAdvance, password } = body;
+        const { role, autoBilling, email, allowBatteryPricing, customInternalRate, customGridBuffer, enablePvBilling, showPvDetails, password } = body;
+
+        let advancePlans;
+        try {
+            advancePlans = parseAdvancePlans(body.advancePlans);
+        } catch (e: any) {
+            return NextResponse.json({ error: e.message }, { status: 400 });
+        }
 
         // Ensure user exists
         const existingUser = await prisma.user.findUnique({
@@ -27,7 +35,6 @@ export async function PUT(
             showPvDetails: !!showPvDetails,
             customInternalRate: (customInternalRate !== "" && customInternalRate !== undefined && customInternalRate !== null) ? parseFloat(customInternalRate) : null,
             customGridBuffer: (customGridBuffer !== "" && customGridBuffer !== undefined && customGridBuffer !== null) ? parseInt(customGridBuffer) : null,
-            monthlyAdvance: (monthlyAdvance !== "" && monthlyAdvance !== undefined && monthlyAdvance !== null) ? parseFloat(monthlyAdvance) : null,
             email: email
         };
 
@@ -41,9 +48,18 @@ export async function PUT(
             updateData.passwordHash = await hash(password, 10);
         }
 
-        const updatedUser = await prisma.user.update({
-            where: { id },
-            data: updateData
+        const updatedUser = await prisma.$transaction(async (tx) => {
+            // Abschlagsplan wird komplett ersetzt, wenn er mitgeschickt wurde
+            if (advancePlans) {
+                await tx.advancePlan.deleteMany({ where: { userId: id } });
+                if (advancePlans.length > 0) {
+                    await tx.advancePlan.createMany({ data: advancePlans.map(p => ({ ...p, userId: id })) });
+                }
+            }
+            return tx.user.update({
+                where: { id },
+                data: updateData
+            });
         });
 
         return NextResponse.json(updatedUser);
