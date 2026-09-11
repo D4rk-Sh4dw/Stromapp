@@ -100,7 +100,7 @@ export default function BillAdvanceSection({ userId, startDate, endDate, onChang
         <div className="space-y-4">
             <div className="p-4 bg-white/5 rounded-2xl border border-white/5 space-y-3">
                 <div className="flex justify-between items-center">
-                    <h4 className="font-bold text-sm text-white/60">Abschläge im Zeitraum</h4>
+                    <h4 className="font-bold text-sm text-muted">Abschläge im Zeitraum</h4>
                     {openRows.length > 0 && (
                         <button
                             type="button"
@@ -113,18 +113,18 @@ export default function BillAdvanceSection({ userId, startDate, endDate, onChang
                 </div>
 
                 {loading ? (
-                    <div className="flex items-center gap-2 text-xs text-white/40">
+                    <div className="flex items-center gap-2 text-xs text-subtle">
                         <Loader2 className="w-4 h-4 animate-spin" /> Lade Abschläge...
                     </div>
                 ) : current?.failed ? (
                     <p className="text-xs text-red-400">Abschläge konnten nicht geladen werden.</p>
                 ) : rows.length === 0 ? (
-                    <p className="text-xs text-white/30 italic">Für diesen Zeitraum ist kein Abschlag hinterlegt.</p>
+                    <p className="text-xs text-subtle italic">Für diesen Zeitraum ist kein Abschlag hinterlegt.</p>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm">
                             <thead>
-                                <tr className="text-[10px] uppercase text-white/40">
+                                <tr className="text-[10px] uppercase text-subtle">
                                     <th className="text-left py-1">Monat</th>
                                     <th className="text-right py-1">Soll</th>
                                     <th className="text-left py-1 px-2">Status</th>
@@ -134,7 +134,7 @@ export default function BillAdvanceSection({ userId, startDate, endDate, onChang
                             </thead>
                             <tbody className="divide-y divide-white/5">
                                 {rows.map((r, i) => r.alreadyBilled ? (
-                                    <tr key={r.month} className="text-white/30">
+                                    <tr key={r.month} className="text-subtle">
                                         <td className="py-2">{formatMonthKey(r.month)}</td>
                                         <td className="py-2 text-right font-mono">{r.expected.toFixed(2)} €</td>
                                         <td colSpan={3} className="py-2 px-2 text-xs italic">bereits in anderer Rechnung abgerechnet</td>
@@ -149,9 +149,9 @@ export default function BillAdvanceSection({ userId, startDate, endDate, onChang
                                                 onChange={e => update(i, { status: e.target.value as PaymentStatus })}
                                                 className={inputClass}
                                             >
-                                                <option value="paid" className="bg-slate-900">Bezahlt</option>
-                                                <option value="partial" className="bg-slate-900">Teilweise</option>
-                                                <option value="open" className="bg-slate-900">Offen</option>
+                                                <option value="paid" className="bg-surface-raised">Bezahlt</option>
+                                                <option value="partial" className="bg-surface-raised">Teilweise</option>
+                                                <option value="open" className="bg-surface-raised">Offen</option>
                                             </select>
                                         </td>
                                         <td className="py-2 px-2 w-28">
@@ -184,17 +184,17 @@ export default function BillAdvanceSection({ userId, startDate, endDate, onChang
 
                 {openRows.length > 0 && (
                     <div className="flex justify-between text-xs border-t border-white/10 pt-2">
-                        <span className="text-white/40">Gezahlt / Soll</span>
+                        <span className="text-subtle">Gezahlt / Soll</span>
                         <span className="font-mono">{paidSum.toFixed(2)} € / {expectedSum.toFixed(2)} €</span>
                     </div>
                 )}
             </div>
 
             <div className="p-4 bg-white/5 rounded-2xl border border-white/5 space-y-3">
-                <h4 className="font-bold text-sm text-white/60">Neuer Abschlag (optional)</h4>
+                <h4 className="font-bold text-sm text-muted">Neuer Abschlag (optional)</h4>
                 <div className="grid grid-cols-2 gap-3">
                     <div>
-                        <label className="text-[10px] font-bold text-white/40 ml-1">Betrag (€ / Monat)</label>
+                        <label className="text-[10px] font-bold text-subtle ml-1">Betrag (€ / Monat)</label>
                         <input
                             type="number"
                             step="0.01"
@@ -206,7 +206,7 @@ export default function BillAdvanceSection({ userId, startDate, endDate, onChang
                         />
                     </div>
                     <div>
-                        <label className="text-[10px] font-bold text-white/40 ml-1">Gültig ab</label>
+                        <label className="text-[10px] font-bold text-subtle ml-1">Gültig ab</label>
                         <input
                             type="month"
                             placeholder="JJJJ-MM"
@@ -217,7 +217,7 @@ export default function BillAdvanceSection({ userId, startDate, endDate, onChang
                         />
                     </div>
                 </div>
-                <p className="text-[10px] text-white/30 leading-tight">
+                <p className="text-[10px] text-subtle leading-tight">
                     Wird in den Abschlagsplan des Benutzers übernommen und auf der Rechnung angezeigt.
                 </p>
             </div>

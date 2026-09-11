@@ -94,12 +94,12 @@ export default function EntitySearch({
     return (
         <div className="relative">
             {label && (
-                <label className="text-xs font-bold uppercase tracking-widest text-white/40 ml-1 block mb-1">
+                <label className="text-sm font-medium text-muted block mb-1">
                     {label}
                 </label>
             )}
             <div className="relative">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-subtle">
                     {type === 'energy' ? (
                         <Zap className="w-4 h-4 text-yellow-400" />
                     ) : type === 'price' ? (
@@ -120,7 +120,7 @@ export default function EntitySearch({
                 {search && (
                     <button
                         onClick={handleClear}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition-colors"
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-subtle hover:text-white transition-colors"
                     >
                         <X className="w-4 h-4" />
                     </button>
@@ -130,7 +130,7 @@ export default function EntitySearch({
             {showDropdown && (
                 <div
                     ref={dropdownRef}
-                    className="absolute z-50 w-full mt-2 glass rounded-2xl border border-white/10 shadow-2xl max-h-64 overflow-y-auto"
+                    className="absolute z-50 w-full mt-2 surface rounded-2xl border border-white/10 shadow-2xl max-h-64 overflow-y-auto"
                 >
                     {/* Suggestions Section */}
                     {suggestions.length > 0 && filteredSuggestions.length > 0 && (
@@ -148,26 +148,26 @@ export default function EntitySearch({
                                         <Zap className="w-3 h-3 text-primary" />
                                         {s.label}
                                     </div>
-                                    <span className="font-mono text-xs text-white/40 md:ml-auto truncate max-w-[200px]">{s.value}</span>
+                                    <span className="font-mono text-xs text-subtle md:ml-auto truncate max-w-[200px]">{s.value}</span>
                                 </button>
                             ))}
                         </div>
                     )}
 
                     {loading ? (
-                        <div className="p-4 text-center text-white/40 flex items-center justify-center gap-2">
+                        <div className="p-4 text-center text-subtle flex items-center justify-center gap-2">
                             <Loader2 className="w-4 h-4 animate-spin" />
                             Suche...
                         </div>
                     ) : entities.length === 0 ? (
                         suggestions.length > 0 && filteredSuggestions.length > 0 ? null : (
-                            <div className="p-4 text-center text-white/40 text-sm">
+                            <div className="p-4 text-center text-subtle text-sm">
                                 Keine Sensoren gefunden
                             </div>
                         )
                     ) : (
                         <>
-                            <div className="px-4 py-2 text-[10px] font-bold uppercase text-white/40 tracking-wider bg-white/5 sticky top-0 backdrop-blur-md">
+                            <div className="px-4 py-2 text-[10px] font-bold uppercase text-subtle tracking-wider bg-white/5 sticky top-0 backdrop-blur-md">
                                 Alle Sensoren
                             </div>
                             {isMock && (

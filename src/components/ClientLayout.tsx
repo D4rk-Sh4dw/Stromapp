@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
 import { AuthProvider } from '@/contexts/AuthContext';
-import { Menu } from 'lucide-react';
+import { Menu, Zap } from 'lucide-react';
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
@@ -18,13 +18,13 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
             ) : (
                 <div className="flex flex-col lg:flex-row min-h-screen">
                     {/* Mobile Header */}
-                    <div className="lg:hidden flex items-center justify-between p-4 glass border-b border-white/10 sticky top-0 z-40 bg-[#0f172a]/80 backdrop-blur-md">
+                    <div className="lg:hidden flex items-center justify-between px-4 py-3 border-b border-border sticky top-0 z-40 bg-sidebar">
                         <div className="flex items-center gap-2">
-                            {/* Placeholder Logo if needed */}
-                            <span className="font-bold text-lg gradient-text">StromApp</span>
+                            <Zap className="w-5 h-5 text-primary fill-primary" />
+                            <span className="font-semibold text-lg tracking-tight">StromApp</span>
                         </div>
-                        <button onClick={() => setMobileMenuOpen(true)} className="p-2 hover:bg-white/10 rounded-lg">
-                            <Menu className="w-6 h-6 text-white" />
+                        <button onClick={() => setMobileMenuOpen(true)} aria-label="Menü öffnen" className="p-2 hover:bg-white/10 rounded-lg">
+                            <Menu className="w-6 h-6" />
                         </button>
                     </div>
 

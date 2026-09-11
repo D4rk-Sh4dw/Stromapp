@@ -46,34 +46,34 @@ export default function HistoryPage() {
     return (
         <div className="space-y-8">
             <div>
-                <h1 className="text-3xl font-black">Verbrauchshistorie</h1>
-                <p className="text-white/40 mt-2">Ihre Stromverbrauchsdaten und Abrechnungen</p>
+                <h1 className="text-2xl font-semibold tracking-tight">Verbrauchshistorie</h1>
+                <p className="text-subtle mt-2">Ihre Stromverbrauchsdaten und Abrechnungen</p>
             </div>
 
             {/* Stats Overview */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className={`glass rounded-3xl p-6 border ${summary?.isBill ? 'border-primary/50 bg-primary/5' : 'border-white/10'}`}>
+                <div className={`surface rounded-2xl p-6 border ${summary?.isBill ? 'border-primary/50 bg-primary/5' : 'border-white/10'}`}>
                     <div className="flex items-center gap-3 mb-2">
-                        <BarChart3 className={`w-5 h-5 ${summary?.isBill ? 'text-primary' : 'text-white/40'}`} />
-                        <span className={`${summary?.isBill ? 'text-primary' : 'text-white/40'} text-sm`}>
+                        <BarChart3 className={`w-5 h-5 ${summary?.isBill ? 'text-primary' : 'text-subtle'}`} />
+                        <span className={`${summary?.isBill ? 'text-primary' : 'text-subtle'} text-sm`}>
                             {summary?.label || "Gesamtverbrauch"}
                         </span>
                     </div>
                     <p className="text-2xl font-bold">{summary?.usage?.toFixed(1) || "0.0"} kWh</p>
                 </div>
 
-                <div className={`glass rounded-3xl p-6 border ${summary?.isBill ? 'border-primary/50 bg-primary/5' : 'border-white/10'}`}>
+                <div className={`surface rounded-2xl p-6 border ${summary?.isBill ? 'border-primary/50 bg-primary/5' : 'border-white/10'}`}>
                     <div className="flex items-center gap-3 mb-2">
                         <TrendingUp className="w-5 h-5 text-green-400" />
-                        <span className={`${summary?.isBill ? 'text-primary' : 'text-white/40'} text-sm`}>Gesamtkosten</span>
+                        <span className={`${summary?.isBill ? 'text-primary' : 'text-subtle'} text-sm`}>Gesamtkosten</span>
                     </div>
                     <p className="text-2xl font-bold">{summary?.cost?.toFixed(2) || "0.00"} €</p>
                 </div>
 
-                <div className="glass rounded-3xl p-6 border border-white/10">
+                <div className="surface rounded-2xl p-6 border border-white/10">
                     <div className="flex items-center gap-3 mb-2">
                         <Calendar className="w-5 h-5 text-yellow-400" />
-                        <span className="text-white/40 text-sm">Ø pro Monat (Historie)</span>
+                        <span className="text-subtle text-sm">Ø pro Monat (Historie)</span>
                     </div>
                     <p className="text-2xl font-bold">
                         {history.length > 0 ? (history.reduce((a, b) => a + b.usage, 0) / history.length).toFixed(1) : "0.0"} kWh
@@ -82,21 +82,21 @@ export default function HistoryPage() {
             </div>
 
             {/* History Table */}
-            <div className="glass rounded-3xl border border-white/10 overflow-hidden">
+            <div className="surface rounded-2xl border border-white/10 overflow-hidden">
                 <div className="p-6 border-b border-white/10">
                     <h2 className="text-lg font-bold">Monatliche Übersicht</h2>
                 </div>
 
                 {loading ? (
-                    <div className="p-12 text-center text-white/40">Lade Daten...</div>
+                    <div className="p-12 text-center text-subtle">Lade Daten...</div>
                 ) : (
                     <table className="w-full">
                         <thead className="bg-white/5">
                             <tr>
-                                <th className="text-left p-4 text-white/40 font-medium">Monat</th>
-                                <th className="text-right p-4 text-white/40 font-medium">Verbrauch</th>
-                                <th className="text-right p-4 text-white/40 font-medium">Kosten</th>
-                                <th className="text-right p-4 text-white/40 font-medium">Trend</th>
+                                <th className="text-left p-4 text-subtle font-medium">Monat</th>
+                                <th className="text-right p-4 text-subtle font-medium">Verbrauch</th>
+                                <th className="text-right p-4 text-subtle font-medium">Kosten</th>
+                                <th className="text-right p-4 text-subtle font-medium">Trend</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -121,7 +121,7 @@ export default function HistoryPage() {
                                                     {trend.toFixed(1)}
                                                 </span>
                                             ) : (
-                                                <span className="text-white/40">–</span>
+                                                <span className="text-subtle">–</span>
                                             )}
                                         </td>
                                     </tr>

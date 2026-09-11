@@ -196,8 +196,8 @@ export default function SettingsPage() {
     return (
         <div className="space-y-8">
             <div>
-                <h1 className="text-3xl font-black">Einstellungen</h1>
-                <p className="text-white/40 mt-2">Verwalten Sie Ihre Kontoeinstellungen</p>
+                <h1 className="text-2xl font-semibold tracking-tight">Einstellungen</h1>
+                <p className="text-subtle mt-2">Verwalten Sie Ihre Kontoeinstellungen</p>
             </div>
 
             {message && (
@@ -210,7 +210,7 @@ export default function SettingsPage() {
             <div className="grid gap-6">
                 {/* System Settings (Admin Only) */}
                 {showSystemSettings && (
-                    <div className="glass rounded-3xl p-6 border border-white/10">
+                    <div className="surface rounded-2xl p-6 border border-white/10">
                         <div className="flex items-center gap-3 mb-6">
                             <Zap className="w-5 h-5 text-primary" />
                             <h2 className="text-lg font-bold">System Preise & Logik</h2>
@@ -218,7 +218,7 @@ export default function SettingsPage() {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label className="text-xs font-bold uppercase tracking-widest text-white/40 ml-1">Interner PV Preis (€)</label>
+                                <label className="text-sm font-medium text-muted">Interner PV Preis (€)</label>
                                 <input
                                     type="number"
                                     step="0.01"
@@ -226,10 +226,10 @@ export default function SettingsPage() {
                                     onChange={(e) => setSysSettings({ ...sysSettings, internalPrice: parseFloat(e.target.value) })}
                                     className="w-full mt-2 bg-white/5 border border-white/10 rounded-xl py-3 px-4 outline-none focus:border-primary/50 transition-all font-mono"
                                 />
-                                <p className="text-[10px] text-white/40 mt-1 ml-1">Berechnung bei Eigenverbrauch</p>
+                                <p className="text-[10px] text-subtle mt-1 ml-1">Berechnung bei Eigenverbrauch</p>
                             </div>
                             <div>
-                                <label className="text-xs font-bold uppercase tracking-widest text-white/40 ml-1">Netzpreis Fallback (€)</label>
+                                <label className="text-sm font-medium text-muted">Netzpreis Fallback (€)</label>
                                 <input
                                     type="number"
                                     step="0.01"
@@ -237,10 +237,10 @@ export default function SettingsPage() {
                                     onChange={(e) => setSysSettings({ ...sysSettings, gridFallbackPrice: parseFloat(e.target.value) })}
                                     className="w-full mt-2 bg-white/5 border border-white/10 rounded-xl py-3 px-4 outline-none focus:border-primary/50 transition-all font-mono"
                                 />
-                                <p className="text-[10px] text-white/40 mt-1 ml-1">Lückenfüller wenn Preisdaten fehlen (2025 etc.)</p>
+                                <p className="text-[10px] text-subtle mt-1 ml-1">Lückenfüller wenn Preisdaten fehlen (2025 etc.)</p>
                             </div>
                             <div>
-                                <label className="text-xs font-bold uppercase tracking-widest text-white/40 ml-1">Einspeisevergütung (€)</label>
+                                <label className="text-sm font-medium text-muted">Einspeisevergütung (€)</label>
                                 <input
                                     type="number"
                                     step="0.01"
@@ -248,14 +248,14 @@ export default function SettingsPage() {
                                     onChange={(e) => setSysSettings({ ...sysSettings, gridExportPrice: parseFloat(e.target.value) })}
                                     className="w-full mt-2 bg-white/5 border border-white/10 rounded-xl py-3 px-4 outline-none focus:border-primary/50 transition-all font-mono"
                                 />
-                                <p className="text-[10px] text-white/40 mt-1 ml-1">Gewinn pro eingespeister kWh</p>
+                                <p className="text-[10px] text-subtle mt-1 ml-1">Gewinn pro eingespeister kWh</p>
                             </div>
                         </div>
                     </div>
                 )}
 
                 {/* Profile Section */}
-                <div className="glass rounded-3xl p-6 border border-white/10">
+                <div className="surface rounded-2xl p-6 border border-white/10">
                     <div className="flex items-center gap-3 mb-6">
                         <User className="w-5 h-5 text-primary" />
                         <h2 className="text-lg font-bold">Profil</h2>
@@ -263,7 +263,7 @@ export default function SettingsPage() {
 
                     <div className="space-y-4">
                         <div>
-                            <label className="text-xs font-bold uppercase tracking-widest text-white/40 ml-1">E-Mail</label>
+                            <label className="text-sm font-medium text-muted">E-Mail</label>
                             <input
                                 type="email"
                                 value={settings.email}
@@ -275,7 +275,7 @@ export default function SettingsPage() {
                 </div>
 
                 {/* Security Section (Password & 2FA) */}
-                <div className="glass rounded-3xl p-6 border border-white/10">
+                <div className="surface rounded-2xl p-6 border border-white/10">
                     <div className="flex items-center gap-3 mb-6">
                         <Shield className="w-5 h-5 text-primary" />
                         <h2 className="text-lg font-bold">Sicherheit</h2>
@@ -291,7 +291,7 @@ export default function SettingsPage() {
                                         <span className="px-2 py-0.5 bg-green-500/20 text-green-400 text-[10px] rounded-full uppercase tracking-wider font-bold">Aktiv</span>
                                     )}
                                 </div>
-                                <p className="text-sm text-white/40 max-w-md">
+                                <p className="text-sm text-subtle max-w-md">
                                     Schützen Sie Ihr Konto zusätzlich mit einem Einmalpasswort (TOTP) über eine Authenticator-App.
                                 </p>
                             </div>
@@ -299,7 +299,7 @@ export default function SettingsPage() {
                                 onClick={settings.twoFactorEnabled ? disable2FA : start2FASetup}
                                 className={`px-6 py-2.5 rounded-xl font-bold text-sm transition-all ${settings.twoFactorEnabled
                                     ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20'
-                                    : 'bg-primary text-white hover:bg-blue-600 shadow-lg shadow-primary/20'
+                                    : 'bg-primary text-primary-foreground hover:bg-primary-hover'
                                     }`}
                             >
                                 {settings.twoFactorEnabled ? 'Deaktivieren' : 'Aktivieren'}
@@ -308,10 +308,10 @@ export default function SettingsPage() {
 
                         {/* Password Change */}
                         <div>
-                            <h3 className="text-sm font-bold uppercase tracking-widest text-white/40 mb-4 ml-1">Passwort ändern</h3>
+                            <h3 className="text-sm font-semibold mb-4">Passwort ändern</h3>
                             <div className="space-y-4">
                                 <div>
-                                    <label className="text-xs font-bold uppercase tracking-widest text-white/40 ml-1">Aktuelles Passwort</label>
+                                    <label className="text-sm font-medium text-muted">Aktuelles Passwort</label>
                                     <input
                                         type="password"
                                         value={passwords.current}
@@ -321,7 +321,7 @@ export default function SettingsPage() {
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="text-xs font-bold uppercase tracking-widest text-white/40 ml-1">Neues Passwort</label>
+                                        <label className="text-sm font-medium text-muted">Neues Passwort</label>
                                         <input
                                             type="password"
                                             value={passwords.new}
@@ -330,7 +330,7 @@ export default function SettingsPage() {
                                         />
                                     </div>
                                     <div>
-                                        <label className="text-xs font-bold uppercase tracking-widest text-white/40 ml-1">Passwort bestätigen</label>
+                                        <label className="text-sm font-medium text-muted">Passwort bestätigen</label>
                                         <input
                                             type="password"
                                             value={passwords.confirm}
@@ -345,7 +345,7 @@ export default function SettingsPage() {
                 </div>
 
                 {/* Notifications Section */}
-                <div className="glass rounded-3xl p-6 border border-white/10">
+                <div className="surface rounded-2xl p-6 border border-white/10">
                     <div className="flex items-center gap-3 mb-6">
                         <Bell className="w-5 h-5 text-primary" />
                         <h2 className="text-lg font-bold">Benachrichtigungen</h2>
@@ -354,7 +354,7 @@ export default function SettingsPage() {
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="font-medium">E-Mail-Benachrichtigungen</p>
-                            <p className="text-sm text-white/40">Erhalten Sie Updates per E-Mail</p>
+                            <p className="text-sm text-subtle">Erhalten Sie Updates per E-Mail</p>
                         </div>
                         <button
                             onClick={() => setSettings({ ...settings, notifications: !settings.notifications })}
@@ -369,7 +369,7 @@ export default function SettingsPage() {
                 <button
                     onClick={handleSave}
                     disabled={saving}
-                    className="w-full bg-primary hover:bg-blue-600 text-white font-bold py-4 rounded-2xl transition-all hover:scale-[1.01] active:scale-[0.99] shadow-lg shadow-primary/30 flex items-center justify-center gap-2"
+                    className="w-full bg-primary hover:bg-primary-hover text-primary-foreground font-bold py-4 rounded-2xl transition-all flex items-center justify-center gap-2"
                 >
                     {saving ? (
                         <Loader2 className="w-5 h-5 animate-spin" />
@@ -384,10 +384,10 @@ export default function SettingsPage() {
 
             {/* 2FA Setup Modal */}
             {show2FAModal && (
-                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-[#111] border border-white/10 rounded-3xl p-8 max-w-md w-full relative">
-                        <h2 className="text-2xl font-black mb-2">2FA einrichten</h2>
-                        <p className="text-white/40 text-sm mb-6">
+                <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+                    <div className="bg-[#111] border border-white/10 rounded-2xl p-8 max-w-md w-full relative">
+                        <h2 className="text-2xl font-semibold mb-2">2FA einrichten</h2>
+                        <p className="text-subtle text-sm mb-6">
                             Scannen Sie den QR-Code mit einer Authenticator-App (z.B. Google Authenticator) und geben Sie den angezeigten Code ein.
                         </p>
 
@@ -397,7 +397,7 @@ export default function SettingsPage() {
 
                         <div className="space-y-4">
                             <div>
-                                <label className="text-xs font-bold uppercase tracking-widest text-white/40 ml-1">Verifizierungs-Code</label>
+                                <label className="text-sm font-medium text-muted">Verifizierungs-Code</label>
                                 <input
                                     type="text"
                                     value={verifyCode}
@@ -418,7 +418,7 @@ export default function SettingsPage() {
                                 <button
                                     onClick={confirm2FA}
                                     disabled={verifyCode.length !== 6}
-                                    className="px-4 py-3 rounded-xl bg-primary hover:bg-blue-600 text-white font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                                    className="px-4 py-3 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                                 >
                                     Aktivieren
                                 </button>
