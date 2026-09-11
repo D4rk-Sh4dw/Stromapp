@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { calculateGranularCost, getSystemStateHistory, PricingRules, calcFlatRateUsage } from '@/lib/influx';
+import { calcAdvanceMonths, calcAdvancePayments } from '@/lib/billing';
 
 export async function POST(req: NextRequest) {
     try {
@@ -12,7 +13,8 @@ export async function POST(req: NextRequest) {
         }
 
         const body = await req.json();
-        const { targetUserId, startDate, endDate } = body;
+        // advancePayments: optionale manuelle Summe der Abschläge (überschreibt die automatische Berechnung)
+        const { targetUserId, startDate, endDate, advancePayments: advanceOverride } = body;
 
         if (!targetUserId || !startDate || !endDate) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -196,6 +198,19 @@ export async function POST(req: NextRequest) {
         // Profit = UserPayments - GridCost + ExportEarnings
         const profit = totalAmount - totalExternalCost + exportRevenue;
 
+        // Abschläge: manuelle Summe hat Vorrang, sonst monatlicher Abschlag × (anteilige) Monate
+        let advancePayments: number | null = null;
+        let advanceMonths: number | null = null;
+        if (advanceOverride !== undefined && advanceOverride !== null && advanceOverride !== "") {
+            advancePayments = Number(advanceOverride);
+            if (!Number.isFinite(advancePayments) || advancePayments < 0) {
+                return NextResponse.json({ error: 'Ungültige Abschlagssumme' }, { status: 400 });
+            }
+        } else if (user.monthlyAdvance) {
+            advanceMonths = calcAdvanceMonths(start, end);
+            advancePayments = calcAdvancePayments(user.monthlyAdvance, start, end);
+        }
+
         const bill = await prisma.bill.create({
             data: {
                 userId: targetUserId,
@@ -205,6 +220,8 @@ export async function POST(req: NextRequest) {
                 totalAmount,
                 profit,
                 mappingSnapshot: JSON.stringify(details), // Save RAW details
+                advancePayments,
+                advanceMonths,
                 pdfUrl: null
             }
         });
