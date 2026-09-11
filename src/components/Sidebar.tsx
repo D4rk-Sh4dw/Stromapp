@@ -53,14 +53,14 @@ export default function Sidebar({ mobileOpen = false, setMobileOpen }: SidebarPr
             <div className={cn("flex items-center gap-3 mb-8 transition-all duration-300", collapsed && !isMobile && "justify-center mb-12")}>
                 <Zap className="text-primary w-8 h-8 fill-primary shrink-0" />
                 {(!collapsed || isMobile) && (
-                    <span className="text-xl font-bold gradient-text underline underline-offset-4 decoration-primary/30 whitespace-nowrap overflow-hidden text-ellipsis">
+                    <span className="text-lg font-semibold tracking-tight whitespace-nowrap overflow-hidden text-ellipsis">
                         StromApp
                     </span>
                 )}
             </div>
 
             {/* Nav */}
-            <nav className="flex-1 space-y-2">
+            <nav className="flex-1 space-y-1">
                 {navItems.map((item) => {
                     if (item.admin && user?.role !== 'ADMIN') return null;
 
@@ -72,21 +72,22 @@ export default function Sidebar({ mobileOpen = false, setMobileOpen }: SidebarPr
                             key={item.href}
                             href={item.href}
                             onClick={() => setMobileOpen?.(false)}
+                            aria-current={isActive ? "page" : undefined}
                             className={cn(
-                                "flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300 group relative",
+                                "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors duration-200 group relative",
                                 isActive
-                                    ? "bg-primary/20 text-white shadow-[0_0_15px_rgba(59,130,246,0.3)]"
-                                    : "text-white/60 hover:text-white hover:bg-white/5",
+                                    ? "bg-white/[0.07] text-foreground"
+                                    : "text-muted hover:text-foreground hover:bg-white/[0.04]",
                                 collapsed && !isMobile && "justify-center px-2"
                             )}
                             title={collapsed && !isMobile ? item.name : undefined}
                         >
-                            <Icon className={cn("w-5 h-5 shrink-0", isActive ? "text-primary" : "group-hover:text-primary")} />
+                            <Icon className={cn("w-5 h-5 shrink-0", isActive ? "text-primary" : "text-subtle group-hover:text-muted")} />
                             {(!collapsed || isMobile) && <span className="font-medium whitespace-nowrap">{item.name}</span>}
 
                             {/* Tooltip for collapsed desktop */}
                             {collapsed && !isMobile && (
-                                <div className="absolute left-full ml-4 px-2 py-1 bg-black/80 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 border border-white/10">
+                                <div className="absolute left-full ml-4 px-2 py-1 bg-surface-raised rounded-md text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 border border-border">
                                     {item.name}
                                 </div>
                             )}
@@ -96,11 +97,11 @@ export default function Sidebar({ mobileOpen = false, setMobileOpen }: SidebarPr
             </nav>
 
             {/* Footer */}
-            <div className="mt-auto pt-6 border-t border-white/10 space-y-2">
+            <div className="mt-auto pt-6 border-t border-border space-y-2">
                 <button
                     onClick={logout}
                     className={cn(
-                        "flex items-center gap-3 px-3 py-3 w-full rounded-xl text-red-400 hover:bg-red-500/10 transition-all font-medium",
+                        "flex items-center gap-3 px-3 py-2.5 w-full rounded-xl text-red-400 hover:bg-red-500/10 transition-colors font-medium",
                         collapsed && !isMobile && "justify-center px-2"
                     )}
                     title={collapsed && !isMobile ? "Abmelden" : undefined}
@@ -113,7 +114,8 @@ export default function Sidebar({ mobileOpen = false, setMobileOpen }: SidebarPr
                 {!isMobile && (
                     <button
                         onClick={() => setCollapsed(!collapsed)}
-                        className="hidden lg:flex items-center justify-center w-full py-2 text-white/20 hover:text-white/60 transition-colors mt-2"
+                        aria-label={collapsed ? "Seitenleiste ausklappen" : "Seitenleiste einklappen"}
+                        className="hidden lg:flex items-center justify-center w-full py-2 rounded-xl text-subtle hover:text-muted transition-colors mt-2"
                     >
                         {collapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
                     </button>
@@ -126,7 +128,7 @@ export default function Sidebar({ mobileOpen = false, setMobileOpen }: SidebarPr
         <>
             {/* Desktop Sidebar */}
             <div className={cn(
-                "hidden lg:block h-screen glass border-r border-white/10 sticky top-0 transition-all duration-300 z-30",
+                "hidden lg:block h-screen bg-sidebar border-r border-border sticky top-0 transition-[width] duration-200 z-30",
                 collapsed ? "w-20" : "w-64"
             )}>
                 <SidebarContent />
@@ -139,13 +141,14 @@ export default function Sidebar({ mobileOpen = false, setMobileOpen }: SidebarPr
             )}>
                 {/* Full Screen Drawer */}
                 <div className={cn(
-                    "absolute inset-0 glass transition-transform duration-300 bg-[#0f172a] flex flex-col pt-24 px-6",
+                    "absolute inset-0 transition-transform duration-300 ease-out bg-sidebar flex flex-col pt-24 px-6",
                     mobileOpen ? "translate-y-0" : "-translate-y-full"
                 )}>
                     {/* Close Button Mobile */}
                     <button
                         onClick={() => setMobileOpen?.(false)}
-                        className="absolute top-6 right-6 p-2 text-white/50 hover:text-white z-50 bg-white/5 rounded-full"
+                        aria-label="Menü schließen"
+                        className="absolute top-6 right-6 p-2 text-muted hover:text-foreground z-50 bg-white/5 rounded-full"
                     >
                         <X className="w-8 h-8" />
                     </button>

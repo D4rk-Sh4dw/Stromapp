@@ -1,36 +1,97 @@
 @import "tailwindcss";
 
-:root {
-  --background: oklch(0.1 0 0);
-  --foreground: oklch(0.98 0 0);
-  --primary: oklch(0.7 0.2 250); /* A nice electric blue */
-  --accent: oklch(0.8 0.15 150); /* Minty accent */
-  --card: oklch(0.15 0.02 0 / 0.7);
-  --border: oklch(0.3 0.02 0 / 0.3);
+/*
+ * Design tokens: dark, cool-tinted neutrals with a single blue accent.
+ * The accent is reserved for actions, selection and state, not decoration.
+ */
+@theme {
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "SFMono-Regular", monospace;
+
+  --color-background: oklch(0.16 0.012 256);
+  --color-sidebar: oklch(0.135 0.012 256);
+  --color-surface: oklch(0.2 0.014 256);
+  --color-surface-raised: oklch(0.235 0.016 256);
+  --color-border: oklch(0.3 0.016 256);
+
+  --color-foreground: oklch(0.96 0.004 256);
+  --color-muted: oklch(0.76 0.012 256);
+  --color-subtle: oklch(0.63 0.014 256);
+
+  --color-primary: oklch(0.74 0.13 252);
+  --color-primary-hover: oklch(0.8 0.11 252);
+  --color-primary-foreground: oklch(0.19 0.03 256);
+  --color-accent: oklch(0.8 0.12 160);
+  --color-card: var(--color-surface);
 }
 
-@theme {
-  --font-sans: 'Inter', sans-serif;
-  --color-primary: var(--primary);
-  --color-accent: var(--accent);
-  --color-card: var(--card);
+:root {
+  color-scheme: dark;
+  accent-color: var(--color-primary);
+  caret-color: var(--color-primary);
+  scrollbar-color: var(--color-border) transparent;
 }
 
 body {
-  background-color: var(--background);
-  color: var(--foreground);
+  background-color: var(--color-background);
+  color: var(--color-foreground);
   font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-.glass {
-  background: var(--card);
-  backdrop-filter: blur(12px);
-  border: 1px solid var(--border);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+::selection {
+  background: color-mix(in oklch, var(--color-primary) 35%, transparent);
+  color: var(--color-foreground);
 }
 
-.gradient-text {
-  background: linear-gradient(90deg, var(--primary), var(--accent));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+::placeholder {
+  color: var(--color-subtle);
+  opacity: 1;
+}
+
+/* Unlayered so it wins over `outline-none` utilities: keyboard focus always stays visible */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+:where(input, select, textarea):focus-visible {
+  outline-offset: 0;
+}
+
+/* Amounts, readings and table columns line up */
+.font-mono,
+table {
+  font-variant-numeric: tabular-nums;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border: 2px solid var(--color-background);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-subtle);
+}
+
+@layer components {
+  /* Elevated content surface: cards, panels, dialogs */
+  .surface {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    box-shadow:
+      0 1px 2px oklch(0 0 0 / 0.25),
+      0 12px 32px -16px oklch(0 0 0 / 0.6);
+  }
 }

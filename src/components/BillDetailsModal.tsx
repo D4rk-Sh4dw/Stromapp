@@ -102,10 +102,10 @@ export default function BillDetailsModal({ bill, onClose }: BillDetailsModalProp
                         <tr className="border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors">
                             <td className="p-4">
                                 {d.label}
-                                {d.factor && d.factor !== 1 && !d.isAggregated && <span className="text-xs text-white/40 ml-2">(x{d.factor})</span>}
+                                {d.factor && d.factor !== 1 && !d.isAggregated && <span className="text-xs text-subtle ml-2">(x{d.factor})</span>}
                             </td>
                             <td className="p-4 text-right font-mono">{d.usage?.toFixed(2)} kWh</td>
-                            <td className="p-4 text-right text-white/40 font-mono">{(d.usage > 0 ? d.cost / d.usage : 0).toFixed(4)} €</td>
+                            <td className="p-4 text-right text-subtle font-mono">{(d.usage > 0 ? d.cost / d.usage : 0).toFixed(4)} €</td>
                             <td className="p-4 text-right font-bold text-primary">{d.cost?.toFixed(2)} €</td>
                         </tr>
                         {/* Granular Breakdown for User */}
@@ -117,8 +117,8 @@ export default function BillDetailsModal({ bill, onClose }: BillDetailsModalProp
                                             <div className="w-1.5 h-1.5 rounded-full bg-green-400"></div>
                                             Intern (PV / Eigenstrom)
                                         </td>
-                                        <td className="p-2 text-right font-mono text-white/60">{d.usageInternal?.toFixed(2)} kWh</td>
-                                        <td className="p-2 text-right font-mono text-white/40">{(d.usageInternal > 0 ? d.costInternal / d.usageInternal : 0).toFixed(4)} €</td>
+                                        <td className="p-2 text-right font-mono text-muted">{d.usageInternal?.toFixed(2)} kWh</td>
+                                        <td className="p-2 text-right font-mono text-subtle">{(d.usageInternal > 0 ? d.costInternal / d.usageInternal : 0).toFixed(4)} €</td>
                                         <td className="p-2 text-right text-green-400">{d.costInternal?.toFixed(2)} €</td>
                                     </tr>
                                 )}
@@ -128,8 +128,8 @@ export default function BillDetailsModal({ bill, onClose }: BillDetailsModalProp
                                             <div className="w-1.5 h-1.5 rounded-full bg-yellow-400"></div>
                                             Netzbezug
                                         </td>
-                                        <td className="p-2 text-right font-mono text-white/60">{d.usageExternal?.toFixed(2)} kWh</td>
-                                        <td className="p-2 text-right font-mono text-white/40">{(d.usageExternal > 0 ? d.costExternal / d.usageExternal : 0).toFixed(4)} €</td>
+                                        <td className="p-2 text-right font-mono text-muted">{d.usageExternal?.toFixed(2)} kWh</td>
+                                        <td className="p-2 text-right font-mono text-subtle">{(d.usageExternal > 0 ? d.costExternal / d.usageExternal : 0).toFixed(4)} €</td>
                                         <td className="p-2 text-right text-yellow-400">{d.costExternal?.toFixed(2)} €</td>
                                     </tr>
                                 )}
@@ -153,12 +153,12 @@ export default function BillDetailsModal({ bill, onClose }: BillDetailsModalProp
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80">
             <div className="absolute inset-0" onClick={onClose} />
             <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="relative glass w-full max-w-3xl rounded-[40px] p-8 border-primary/20 shadow-2xl max-h-[90vh] overflow-y-auto z-10"
+                className="relative surface w-full max-w-3xl rounded-2xl p-8 shadow-2xl max-h-[90vh] overflow-y-auto z-10"
             >
                 <div className="flex justify-between items-center mb-6">
                     <h3 className="text-xl font-bold flex items-center gap-2">
@@ -173,33 +173,33 @@ export default function BillDetailsModal({ bill, onClose }: BillDetailsModalProp
                 <div className="space-y-6">
                     <div className="grid grid-cols-2 gap-4 text-sm bg-white/5 p-4 rounded-2xl">
                         <div>
-                            <p className="text-white/40 text-xs uppercase font-bold">Rechnungs-Nr.</p>
+                            <p className="text-xs text-subtle">Rechnungs-Nr.</p>
                             <p className="font-mono text-lg">{bill.id.substring(0, 8)}</p>
                         </div>
                         {bill.user && (
                             <div>
-                                <p className="text-white/40 text-xs uppercase font-bold">Benutzer</p>
+                                <p className="text-xs text-subtle">Benutzer</p>
                                 <p className="font-medium">{bill.user.email}</p>
                             </div>
                         )}
                         <div>
-                            <p className="text-white/40 text-xs uppercase font-bold">Zeitraum</p>
+                            <p className="text-xs text-subtle">Zeitraum</p>
                             <p>{new Date(bill.startDate).toLocaleDateString()} - {new Date(bill.endDate).toLocaleDateString()}</p>
                         </div>
                         <div>
-                            <p className="text-white/40 text-xs uppercase font-bold">Erstellt am</p>
+                            <p className="text-xs text-subtle">Erstellt am</p>
                             <p>{new Date(bill.createdAt).toLocaleString()}</p>
                         </div>
                     </div>
 
-                    <div className="glass rounded-2xl overflow-hidden border border-white/5">
+                    <div className="surface rounded-2xl overflow-hidden border border-white/5">
                         <table className="w-full text-sm">
                             <thead className="bg-white/5">
                                 <tr>
-                                    <th className="p-4 text-left text-white/40 uppercase text-xs font-bold">Beschreibung</th>
-                                    <th className="p-4 text-right text-white/40 uppercase text-xs font-bold">Menge</th>
-                                    <th className="p-4 text-right text-white/40 uppercase text-xs font-bold">Ø Preis</th>
-                                    <th className="p-4 text-right text-white/40 uppercase text-xs font-bold">Summe</th>
+                                    <th className="p-4 text-left text-subtle uppercase text-xs font-bold">Beschreibung</th>
+                                    <th className="p-4 text-right text-subtle uppercase text-xs font-bold">Menge</th>
+                                    <th className="p-4 text-right text-subtle uppercase text-xs font-bold">Ø Preis</th>
+                                    <th className="p-4 text-right text-subtle uppercase text-xs font-bold">Summe</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-white/5">

@@ -69,13 +69,13 @@ export default function LiveStats() {
 
         if (isExporting) {
             return (
-                <div className="glass p-8 rounded-3xl bg-green-500/10 border-green-500/20 flex gap-6 items-start">
-                    <div className="p-3 bg-green-500/20 rounded-2xl text-green-400 animate-pulse">
-                        <Sun className="w-8 h-8" />
+                <div className="surface p-6 rounded-2xl bg-green-500/10 border-green-500/20 flex gap-4 items-start">
+                    <div className="p-2.5 bg-green-500/20 rounded-xl text-green-400">
+                        <Sun className="w-6 h-6" />
                     </div>
                     <div>
-                        <h3 className="text-xl font-bold text-green-400">Sonnen-Überschuss!</h3>
-                        <p className="text-sm text-white/60 mt-1">
+                        <h3 className="text-base font-semibold text-green-400">Sonnen-Überschuss!</h3>
+                        <p className="text-sm text-muted mt-1">
                             Sie speisen gerade <b>{Math.abs(data.usageKW).toFixed(2)} kW</b> ins Netz ein.
                             Perfekter Zeitpunkt um das E-Auto zu laden oder die Waschmaschine zu starten!
                         </p>
@@ -86,13 +86,13 @@ export default function LiveStats() {
 
         if (isExpensive) {
             return (
-                <div className="glass p-8 rounded-3xl bg-red-500/10 border-red-500/20 flex gap-6 items-start">
-                    <div className="p-3 bg-red-500/20 rounded-2xl text-red-400">
-                        <AlertCircle className="w-8 h-8" />
+                <div className="surface p-6 rounded-2xl bg-red-500/10 border-red-500/20 flex gap-4 items-start">
+                    <div className="p-2.5 bg-red-500/20 rounded-xl text-red-400">
+                        <AlertCircle className="w-6 h-6" />
                     </div>
                     <div>
-                        <h3 className="text-xl font-bold text-red-400">Hoher Preis-Alarm</h3>
-                        <p className="text-sm text-white/60 mt-1">
+                        <h3 className="text-base font-semibold text-red-400">Hoher Preis-Alarm</h3>
+                        <p className="text-sm text-muted mt-1">
                             Der Strompreis ist aktuell sehr hoch (<b>{(data.pricePerKWh * 100).toFixed(1)} ct/kWh</b>).
                             Vermeiden Sie große Verbraucher wenn möglich.
                         </p>
@@ -103,13 +103,13 @@ export default function LiveStats() {
 
         if (isCheap) {
             return (
-                <div className="glass p-8 rounded-3xl bg-blue-500/10 border-blue-500/20 flex gap-6 items-start">
-                    <div className="p-3 bg-blue-500/20 rounded-2xl text-blue-400">
-                        <Leaf className="w-8 h-8" />
+                <div className="surface p-6 rounded-2xl bg-blue-500/10 border-blue-500/20 flex gap-4 items-start">
+                    <div className="p-2.5 bg-blue-500/20 rounded-xl text-blue-400">
+                        <Leaf className="w-6 h-6" />
                     </div>
                     <div>
-                        <h3 className="text-xl font-bold text-blue-400">Günstiger Strom</h3>
-                        <p className="text-sm text-white/60 mt-1">
+                        <h3 className="text-base font-semibold text-blue-400">Günstiger Strom</h3>
+                        <p className="text-sm text-muted mt-1">
                             Nutzen Sie die günstigen Preise (<b>{(data.pricePerKWh * 100).toFixed(1)} ct/kWh</b>).
                             Gut geeignet für energieintensive Aufgaben.
                         </p>
@@ -120,13 +120,13 @@ export default function LiveStats() {
 
         // Default Status
         return (
-            <div className="glass p-8 rounded-3xl bg-white/5 border-white/10 flex gap-6 items-start">
-                <div className="p-3 bg-white/10 rounded-2xl text-white/40">
-                    <Activity className="w-8 h-8" />
+            <div className="surface p-6 rounded-2xl bg-white/5 border-white/10 flex gap-4 items-start">
+                <div className="p-2.5 bg-white/10 rounded-xl text-subtle">
+                    <Activity className="w-6 h-6" />
                 </div>
                 <div>
-                    <h3 className="text-xl font-bold text-white">Normalbetrieb</h3>
-                    <p className="text-sm text-white/60 mt-1">
+                    <h3 className="text-base font-semibold text-white">Normalbetrieb</h3>
+                    <p className="text-sm text-muted mt-1">
                         Alles im grünen Bereich. Aktueller Verbrauch und Preise sind unauffällig.
                     </p>
                 </div>
@@ -147,10 +147,10 @@ export default function LiveStats() {
         <div className="space-y-8">
             <header className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-3xl font-bold gradient-text">Live Dashboard</h1>
-                    <p className="text-white/40 mt-1">Aktuelle Verbrauchswerte & Status.</p>
+                    <h1 className="text-2xl font-semibold tracking-tight">Live Dashboard</h1>
+                    <p className="text-subtle mt-1">Aktuelle Verbrauchswerte & Status.</p>
                 </div>
-                <button onClick={handleRefresh} className="flex items-center gap-2 px-4 py-2 glass rounded-xl hover:bg-white/10 transition-all text-sm">
+                <button onClick={handleRefresh} className="flex items-center gap-2 px-4 py-2 surface rounded-xl hover:bg-white/10 transition-all text-sm">
                     <RefreshCw className={`w-4 h-4 text-primary ${loading ? 'animate-spin' : ''}`} />
                     Aktualisieren
                 </button>
@@ -159,26 +159,24 @@ export default function LiveStats() {
             <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-4 gap-8">
                 {/* Usage Card */}
                 <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="glass p-10 rounded-[40px] flex flex-col items-center justify-center text-center relative overflow-hidden min-h-[300px]"
+                    
+                    
+                    className="surface p-10 rounded-2xl flex flex-col items-center justify-center text-center relative overflow-hidden min-h-[300px]"
                 >
-                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-50" />
-                    <p className="text-white/40 uppercase tracking-widest text-xs font-bold mb-4">Aktuelle Leistung</p>
+                    <p className="text-sm font-medium text-muted mb-2">Aktuelle Leistung</p>
                     <div className="relative">
-                        <div className="absolute inset-0 bg-primary blur-[80px] opacity-20 scale-150" />
-                        <h2 className="text-8xl font-black relative z-10 flex items-baseline gap-2">
+                        <h2 className="text-7xl font-semibold tracking-tight tabular-nums flex items-baseline gap-2">
                             {powerValue}
-                            <span className="text-2xl font-bold text-white/20">{powerUnit}</span>
+                            <span className="text-2xl font-medium text-subtle">{powerUnit}</span>
                         </h2>
                     </div>
                     {data?.details?.some((d: any) => d.isLive) ? (
                         <div className="flex items-center gap-2 mt-8 px-4 py-2 bg-green-500/10 text-green-400 rounded-xl text-sm font-medium">
-                            <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse shadow-[0_0_10px_currentColor]" />
+                            <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
                             Live Messung
                         </div>
                     ) : (
-                        <div className="flex items-center gap-2 mt-8 px-4 py-2 bg-white/5 text-white/40 rounded-xl text-sm font-medium">
+                        <div className="flex items-center gap-2 mt-8 px-4 py-2 bg-white/5 text-subtle rounded-xl text-sm font-medium">
                             <TrendingUp className="w-4 h-4" />
                             Berechnet (15min Ø)
                         </div>
@@ -187,25 +185,25 @@ export default function LiveStats() {
 
                 {/* Status / Alarm Card */}
                 {getStatusCard() || (
-                    <div className="glass p-10 rounded-[40px] flex items-center justify-center">
-                        <div className="animate-pulse text-white/20">Lade Status...</div>
+                    <div className="surface p-10 rounded-2xl flex items-center justify-center">
+                        <div className="animate-pulse text-subtle">Lade Status...</div>
                     </div>
                 )}
             </div>
 
             {/* Graph Section */}
-            <div className="glass p-8 rounded-[40px] border-white/5">
+            <div className="surface p-8 rounded-2xl border-white/5">
                 <div className="flex justify-between items-center mb-8">
-                    <h3 className="text-xl font-bold flex items-center gap-2">
+                    <h3 className="text-base font-semibold flex items-center gap-2">
                         <TrendingUp className="w-5 h-5 text-primary" />
                         Verlauf
                     </h3>
                     <div className="flex bg-white/5 p-1 rounded-xl border border-white/5 overflow-x-auto">
-                        <button onClick={() => setGraphTab('today')} className={`px-4 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap ${graphTab === 'today' ? 'bg-primary text-white shadow-lg' : 'text-white/40 hover:text-white hover:bg-white/5'}`}>Heute</button>
-                        <button onClick={() => setGraphTab('yesterday')} className={`px-4 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap ${graphTab === 'yesterday' ? 'bg-primary text-white shadow-lg' : 'text-white/40 hover:text-white hover:bg-white/5'}`}>Gestern</button>
-                        <button onClick={() => setGraphTab('week')} className={`px-4 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap ${graphTab === 'week' ? 'bg-primary text-white shadow-lg' : 'text-white/40 hover:text-white hover:bg-white/5'}`}>Woche</button>
-                        <button onClick={() => setGraphTab('month')} className={`px-4 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap ${graphTab === 'month' ? 'bg-primary text-white shadow-lg' : 'text-white/40 hover:text-white hover:bg-white/5'}`}>Monat</button>
-                        <button onClick={() => setGraphTab('year')} className={`px-4 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap ${graphTab === 'year' ? 'bg-primary text-white shadow-lg' : 'text-white/40 hover:text-white hover:bg-white/5'}`}>Jahr</button>
+                        <button onClick={() => setGraphTab('today')} className={`px-4 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap ${graphTab === 'today' ? 'bg-primary text-primary-foreground shadow-lg' : 'text-subtle hover:text-primary-foreground hover:bg-white/5'}`}>Heute</button>
+                        <button onClick={() => setGraphTab('yesterday')} className={`px-4 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap ${graphTab === 'yesterday' ? 'bg-primary text-primary-foreground shadow-lg' : 'text-subtle hover:text-primary-foreground hover:bg-white/5'}`}>Gestern</button>
+                        <button onClick={() => setGraphTab('week')} className={`px-4 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap ${graphTab === 'week' ? 'bg-primary text-primary-foreground shadow-lg' : 'text-subtle hover:text-primary-foreground hover:bg-white/5'}`}>Woche</button>
+                        <button onClick={() => setGraphTab('month')} className={`px-4 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap ${graphTab === 'month' ? 'bg-primary text-primary-foreground shadow-lg' : 'text-subtle hover:text-primary-foreground hover:bg-white/5'}`}>Monat</button>
+                        <button onClick={() => setGraphTab('year')} className={`px-4 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap ${graphTab === 'year' ? 'bg-primary text-primary-foreground shadow-lg' : 'text-subtle hover:text-primary-foreground hover:bg-white/5'}`}>Jahr</button>
                     </div>
                 </div>
 
@@ -274,14 +272,14 @@ export default function LiveStats() {
             </div>
 
             {/* Details List (formerly Phases) */}
-            <div className="glass p-8 rounded-3xl border-white/10">
+            <div className="surface p-8 rounded-2xl border-white/10">
                 <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
                     <Zap className="w-5 h-5 text-primary" />
                     Verbraucher Details
                 </h3>
 
                 {!data?.details || data.details.length === 0 ? (
-                    <div className="text-center py-10 text-white/30">
+                    <div className="text-center py-10 text-subtle">
                         Keine aktiven Verbraucher gefunden oder Daten werden geladen...
                     </div>
                 ) : (
@@ -292,13 +290,13 @@ export default function LiveStats() {
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: i * 0.05 }}
-                                className="glass bg-white/5 hover:bg-white/10 transition-colors p-4 rounded-2xl flex justify-between items-center border border-white/5"
+                                className="surface bg-white/5 hover:bg-white/10 transition-colors p-4 rounded-2xl flex justify-between items-center border border-white/5"
                             >
                                 <div>
                                     <div className="text-sm font-medium text-white/80 truncate max-w-[150px]" title={item.label}>
                                         {item.label}
                                     </div>
-                                    <div className="text-xs text-white/40 mt-1 flex items-center gap-2">
+                                    <div className="text-xs text-subtle mt-1 flex items-center gap-2">
                                         {(item.currentPrice * 100).toFixed(1)} ct/kWh
                                         {item.isLive ? (
                                             <span className="flex items-center gap-1 text-[10px] text-green-400 bg-green-400/10 px-1.5 py-0.5 rounded">
@@ -306,7 +304,7 @@ export default function LiveStats() {
                                                 Live
                                             </span>
                                         ) : (
-                                            <span className="text-[10px] text-white/20 bg-white/5 px-1.5 py-0.5 rounded" title="Berechnet aus 15min Durchschnitt">
+                                            <span className="text-[10px] text-subtle bg-white/5 px-1.5 py-0.5 rounded" title="Berechnet aus 15min Durchschnitt">
                                                 Ø 15m
                                             </span>
                                         )}
@@ -316,7 +314,7 @@ export default function LiveStats() {
                                     <div className={`font-mono font-bold text-lg ${item.usageKW < 0 ? 'text-green-400' : 'text-primary'}`}>
                                         {item.usageKW.toFixed(3)} kW
                                     </div>
-                                    <div className="text-xs text-white/40">
+                                    <div className="text-xs text-subtle">
                                         {item.costPerHour.toFixed(2)} €/h
                                     </div>
                                 </div>

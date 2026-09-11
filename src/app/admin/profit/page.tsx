@@ -49,8 +49,8 @@ export default function ProfitPage() {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold gradient-text">PV Gewinn Übersicht</h1>
-                    <p className="text-white/60 mt-1">
+                    <h1 className="text-2xl font-semibold tracking-tight">PV Gewinn Übersicht</h1>
+                    <p className="text-muted mt-1">
                         Einnahmen durch internen Stromverkauf (PV & Speicher)
                     </p>
                 </div>
@@ -67,7 +67,7 @@ export default function ProfitPage() {
                         onChange={(e) => setStartDate(e.target.value)}
                         className="bg-transparent border border-white/20 rounded px-2 py-1 text-sm focus:border-primary outline-none"
                     />
-                    <span className="text-white/40">-</span>
+                    <span className="text-subtle">-</span>
                     <input
                         type="date"
                         value={endDate}
@@ -77,7 +77,7 @@ export default function ProfitPage() {
                     <button
                         onClick={fetchStats}
                         disabled={loading}
-                        className="ml-2 bg-primary hover:bg-primary/80 text-white px-4 py-1 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+                        className="ml-2 bg-primary hover:bg-primary-hover text-primary-foreground px-4 py-1 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
                     >
                         {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Aktualisieren"}
                     </button>
@@ -96,7 +96,7 @@ export default function ProfitPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
                 {/* Total Profit Card */}
-                <div className="glass p-6 rounded-2xl border border-white/10 relative overflow-hidden group">
+                <div className="surface p-6 rounded-2xl border border-white/10 relative overflow-hidden group">
                     <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                         <TrendingUp className="w-32 h-32 text-green-500" />
                     </div>
@@ -110,14 +110,14 @@ export default function ProfitPage() {
                         <div className="text-3xl font-bold text-green-400 mt-2">
                             {stats ? fmtMoney(stats.totalProfit) : "..."}
                         </div>
-                        <p className="text-white/40 text-[10px] mt-1">
+                        <p className="text-subtle text-[10px] mt-1">
                             Interner Verkauf + Einspeisung
                         </p>
                     </div>
                 </div>
 
                 {/* Energy Card (Internal) */}
-                <div className="glass p-6 rounded-2xl border border-white/10 relative overflow-hidden group">
+                <div className="surface p-6 rounded-2xl border border-white/10 relative overflow-hidden group">
                     <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                         <Zap className="w-32 h-32 text-yellow-500" />
                     </div>
@@ -129,7 +129,7 @@ export default function ProfitPage() {
                             <h3 className="text-lg font-medium text-white/80">Intern Verkauft</h3>
                         </div>
                         <div className="text-3xl font-bold text-yellow-400 mt-2">
-                            {stats ? fmtNum(stats.totalInternalKwh) : "..."} <span className="text-lg text-white/60">kWh</span>
+                            {stats ? fmtNum(stats.totalInternalKwh) : "..."} <span className="text-lg text-muted">kWh</span>
                         </div>
                         <div className="text-sm text-green-400 mt-1">
                             +{stats ? fmtMoney(stats.profitInternal || 0) : "..."}
@@ -138,7 +138,7 @@ export default function ProfitPage() {
                 </div>
 
                 {/* Export Card */}
-                <div className="glass p-6 rounded-2xl border border-white/10 relative overflow-hidden group">
+                <div className="surface p-6 rounded-2xl border border-white/10 relative overflow-hidden group">
                     <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                         <Zap className="w-32 h-32 text-blue-500" />
                     </div>
@@ -150,7 +150,7 @@ export default function ProfitPage() {
                             <h3 className="text-lg font-medium text-white/80">Eingespeist</h3>
                         </div>
                         <div className="text-3xl font-bold text-blue-400 mt-2">
-                            {stats ? fmtNum(stats.totalExportKwh || 0) : "0"} <span className="text-lg text-white/60">kWh</span>
+                            {stats ? fmtNum(stats.totalExportKwh || 0) : "0"} <span className="text-lg text-muted">kWh</span>
                         </div>
                         <div className="text-sm text-green-400 mt-1">
                             +{stats ? fmtMoney(stats.profitExport || 0) : "..."}
@@ -160,7 +160,7 @@ export default function ProfitPage() {
             </div>
 
             {/* User Table */}
-            <div className="glass rounded-2xl border border-white/10 overflow-hidden">
+            <div className="surface rounded-2xl border border-white/10 overflow-hidden">
                 <div className="p-6 border-b border-white/10">
                     <h3 className="text-lg font-bold flex items-center gap-2">
                         <User className="w-5 h-5 text-primary" />
@@ -170,7 +170,7 @@ export default function ProfitPage() {
                 <div className="overflow-x-auto">
                     <table className="w-full">
                         <thead>
-                            <tr className="bg-white/5 text-left text-sm text-white/60">
+                            <tr className="bg-white/5 text-left text-sm text-muted">
                                 <th className="p-4 font-medium">Nutzer</th>
                                 <th className="p-4 font-medium text-right">Bezug (Intern)</th>
                                 <th className="p-4 font-medium text-right">Gewinn</th>
@@ -180,14 +180,14 @@ export default function ProfitPage() {
                         <tbody className="divide-y divide-white/10">
                             {loading && !stats ? (
                                 <tr>
-                                    <td colSpan={4} className="p-8 text-center text-white/40">
+                                    <td colSpan={4} className="p-8 text-center text-subtle">
                                         <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2" />
                                         Berechne Daten...
                                     </td>
                                 </tr>
                             ) : stats?.userBreakdown?.length === 0 ? (
                                 <tr>
-                                    <td colSpan={4} className="p-8 text-center text-white/40">
+                                    <td colSpan={4} className="p-8 text-center text-subtle">
                                         Keine Daten für diesen Zeitraum.
                                     </td>
                                 </tr>
@@ -203,7 +203,7 @@ export default function ProfitPage() {
                                         <td className="p-4 text-right font-mono font-bold text-green-400">
                                             +{fmtMoney(user.profit)}
                                         </td>
-                                        <td className="p-4 text-right text-sm text-white/40">
+                                        <td className="p-4 text-right text-sm text-subtle">
                                             {stats.totalProfit > 0
                                                 ? Math.round((user.profit / stats.totalProfit) * 100)
                                                 : 0}%

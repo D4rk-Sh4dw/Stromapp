@@ -653,10 +653,10 @@ export default function AdminPanel() {
                         <tr className="border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors">
                             <td className="p-4">
                                 {d.label}
-                                {d.factor && d.factor !== 1 && <span className="text-xs text-white/40 ml-2">(x{d.factor})</span>}
+                                {d.factor && d.factor !== 1 && <span className="text-xs text-subtle ml-2">(x{d.factor})</span>}
                             </td>
                             <td className="p-4 text-right font-mono">{d.usage.toFixed(2)} kWh</td>
-                            <td className="p-4 text-right text-white/40 font-mono">{(d.cost / (d.usage || 1)).toFixed(4)} €</td>
+                            <td className="p-4 text-right text-subtle font-mono">{(d.cost / (d.usage || 1)).toFixed(4)} €</td>
                             <td className="p-4 text-right font-bold text-primary">{d.cost.toFixed(2)} €</td>
                         </tr>
                         {/* Granular Breakdown */}
@@ -666,8 +666,8 @@ export default function AdminPanel() {
                                     <div className="w-1.5 h-1.5 rounded-full bg-green-400"></div>
                                     Intern (PV / Eigenstrom)
                                 </td>
-                                <td className="p-2 text-right font-mono text-white/60">{d.usageInternal?.toFixed(2)} kWh</td>
-                                <td className="p-2 text-right font-mono text-white/40">{(d.costInternal / (d.usageInternal || 1)).toFixed(4)} €</td>
+                                <td className="p-2 text-right font-mono text-muted">{d.usageInternal?.toFixed(2)} kWh</td>
+                                <td className="p-2 text-right font-mono text-subtle">{(d.costInternal / (d.usageInternal || 1)).toFixed(4)} €</td>
                                 <td className="p-2 text-right text-green-400">{d.costInternal?.toFixed(2)} €</td>
                             </tr>
                         )}
@@ -677,8 +677,8 @@ export default function AdminPanel() {
                                     <div className="w-1.5 h-1.5 rounded-full bg-yellow-400"></div>
                                     Netzbezug
                                 </td>
-                                <td className="p-2 text-right font-mono text-white/60">{d.usageExternal?.toFixed(2)} kWh</td>
-                                <td className="p-2 text-right font-mono text-white/40">{(d.costExternal / (d.usageExternal || 1)).toFixed(4)} €</td>
+                                <td className="p-2 text-right font-mono text-muted">{d.usageExternal?.toFixed(2)} kWh</td>
+                                <td className="p-2 text-right font-mono text-subtle">{(d.costExternal / (d.usageExternal || 1)).toFixed(4)} €</td>
                                 <td className="p-2 text-right text-yellow-400">{d.costExternal?.toFixed(2)} €</td>
                             </tr>
                         )}
@@ -702,10 +702,10 @@ export default function AdminPanel() {
     // ACCESS DENIED view
     if (!isAdmin) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-[60vh] glass rounded-3xl p-12">
+            <div className="flex flex-col items-center justify-center min-h-[60vh] surface rounded-2xl p-12">
                 <Shield className="w-16 h-16 text-red-400 mb-6" />
                 <h1 className="text-2xl font-bold mb-2">Zugriff verweigert</h1>
-                <p className="text-white/40 text-center max-w-md">
+                <p className="text-subtle text-center max-w-md">
                     Sie benötigen Administratorrechte, um auf diesen Bereich zuzugreifen.
                     Bitte wenden Sie sich an einen Administrator.
                 </p>
@@ -716,8 +716,8 @@ export default function AdminPanel() {
     return (
         <div className="space-y-8">
             <header>
-                <h1 className="text-3xl font-bold gradient-text">Administration</h1>
-                <p className="text-white/40 mt-1">Konfiguration von Zählern, Faktoren und Benutzern.</p>
+                <h1 className="text-2xl font-semibold tracking-tight">Administration</h1>
+                <p className="text-subtle mt-1">Konfiguration von Zählern, Faktoren und Benutzern.</p>
             </header>
 
             <div className="flex gap-4 border-b border-border pb-px">
@@ -725,7 +725,7 @@ export default function AdminPanel() {
                     <button
                         key={tab}
                         onClick={() => setActiveTab(tab)}
-                        className={`px-6 py-3 text-sm font-medium transition-all relative ${activeTab === tab ? "text-primary" : "text-white/40 hover:text-white"}`}
+                        className={`px-6 py-3 text-sm font-medium transition-all relative ${activeTab === tab ? "text-primary" : "text-subtle hover:text-white"}`}
                     >
                         {tab === "monitor" ? "Live-Monitor" : tab === "mappings" ? "Sensor-Mappings" : tab === "users" ? "Benutzer" : tab === "bills" ? "Abrechnungen" : "Einstellungen"}
                         {activeTab === tab && (
@@ -744,49 +744,49 @@ export default function AdminPanel() {
                     {/* Top Cards: PV, Import, Export, Battery */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         {/* PV Generation Card */}
-                        <div className="glass p-6 rounded-[24px] border border-white/5 relative overflow-hidden group">
+                        <div className="surface p-6 rounded-2xl border border-white/5 relative overflow-hidden group">
                             <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                                 <Zap className="w-16 h-16" />
                             </div>
-                            <div className="text-white/40 text-xs font-bold uppercase tracking-wider mb-2">PV Erzeugung</div>
+                            <div className="text-subtle text-sm font-medium text-muted mb-1">PV Erzeugung</div>
                             <div className="text-2xl font-bold font-mono text-yellow-400">
-                                {liveData?.system?.pvPower?.toFixed(2) || "0.00"} <span className="text-sm text-white/40">kW</span>
+                                {liveData?.system?.pvPower?.toFixed(2) || "0.00"} <span className="text-sm text-subtle">kW</span>
                             </div>
                         </div>
 
                         {/* Grid Import Card */}
-                        <div className="glass p-6 rounded-[24px] border border-white/5 relative overflow-hidden group">
+                        <div className="surface p-6 rounded-2xl border border-white/5 relative overflow-hidden group">
                             <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                                 <Activity className="w-16 h-16" />
                             </div>
-                            <div className="text-white/40 text-xs font-bold uppercase tracking-wider mb-2">Netzbezug</div>
+                            <div className="text-subtle text-sm font-medium text-muted mb-1">Netzbezug</div>
                             <div className="text-2xl font-bold font-mono text-red-400">
-                                {liveData?.system?.gridImport?.toFixed(2) || "0.00"} <span className="text-sm text-white/40">kW</span>
+                                {liveData?.system?.gridImport?.toFixed(2) || "0.00"} <span className="text-sm text-subtle">kW</span>
                             </div>
                         </div>
 
                         {/* Grid Export Card */}
-                        <div className="glass p-6 rounded-[24px] border border-white/5 relative overflow-hidden group">
+                        <div className="surface p-6 rounded-2xl border border-white/5 relative overflow-hidden group">
                             <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                                 <Activity className="w-16 h-16" />
                             </div>
-                            <div className="text-white/40 text-xs font-bold uppercase tracking-wider mb-2">Einspeisung</div>
+                            <div className="text-subtle text-sm font-medium text-muted mb-1">Einspeisung</div>
                             <div className="text-2xl font-bold font-mono text-green-400">
-                                {liveData?.system?.gridExport?.toFixed(2) || "0.00"} <span className="text-sm text-white/40">kW</span>
+                                {liveData?.system?.gridExport?.toFixed(2) || "0.00"} <span className="text-sm text-subtle">kW</span>
                             </div>
                         </div>
 
                         {/* Battery Card */}
-                        <div className="glass p-6 rounded-[24px] border border-white/5 relative overflow-hidden group">
+                        <div className="surface p-6 rounded-2xl border border-white/5 relative overflow-hidden group">
                             <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                                 <Battery className="w-16 h-16" />
                             </div>
-                            <div className="text-white/40 text-xs font-bold uppercase tracking-wider mb-2">Batterie</div>
+                            <div className="text-subtle text-sm font-medium text-muted mb-1">Batterie</div>
                             <div className="flex justify-between items-end">
                                 <div className="text-2xl font-bold font-mono text-blue-400">
-                                    {liveData?.system?.batteryLevel?.toFixed(0) || "0"} <span className="text-sm text-white/40">%</span>
+                                    {liveData?.system?.batteryLevel?.toFixed(0) || "0"} <span className="text-sm text-subtle">%</span>
                                 </div>
-                                <div className="text-sm font-mono text-white/60">
+                                <div className="text-sm font-mono text-muted">
                                     {liveData?.system?.batteryPower?.toFixed(2) || "0.00"} kW
                                 </div>
                             </div>
@@ -794,7 +794,7 @@ export default function AdminPanel() {
                     </div>
 
                     {/* Users List */}
-                    <div className="glass overflow-hidden rounded-[32px] border border-white/5">
+                    <div className="surface overflow-hidden rounded-2xl border border-white/5">
                         <div className="p-6 border-b border-white/5 flex items-center gap-2">
                             <Activity className="w-5 h-5 text-primary" />
                             <h3 className="font-bold">Aktuelle Verbraucher (User)</h3>
@@ -802,14 +802,14 @@ export default function AdminPanel() {
                         <table className="w-full">
                             <thead className="bg-white/5">
                                 <tr>
-                                    <th className="text-left p-6 text-xs text-white/40 uppercase tracking-wider font-bold">User</th>
-                                    <th className="text-right p-6 text-xs text-white/40 uppercase tracking-wider font-bold">Aktuelle Leistung</th>
+                                    <th className="text-left p-6 text-xs text-subtle uppercase tracking-wider font-bold">User</th>
+                                    <th className="text-right p-6 text-xs text-subtle uppercase tracking-wider font-bold">Aktuelle Leistung</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-white/5">
                                 {liveData?.users?.length === 0 || !liveData?.users ? (
                                     <tr>
-                                        <td colSpan={2} className="p-10 text-center text-white/30 italic">Keine aktiven Verbraucher gefunden</td>
+                                        <td colSpan={2} className="p-10 text-center text-subtle italic">Keine aktiven Verbraucher gefunden</td>
                                     </tr>
                                 ) : (
                                     liveData.users.map((u: any) => (
@@ -844,13 +844,13 @@ export default function AdminPanel() {
                         </button>
                     </div>
 
-                    <div className="glass rounded-3xl overflow-hidden">
+                    <div className="surface rounded-2xl overflow-hidden">
                         {loading ? (
-                            <div className="p-10 text-center text-white/40 flex items-center justify-center gap-2">
+                            <div className="p-10 text-center text-subtle flex items-center justify-center gap-2">
                                 <Loader2 className="w-5 h-5 animate-spin" /> Lade...
                             </div>
                         ) : mappings.length === 0 ? (
-                            <div className="p-10 text-center text-white/40">Keine Mappings gefunden.</div>
+                            <div className="p-10 text-center text-subtle">Keine Mappings gefunden.</div>
                         ) : (
                             <>
                                 <div className="md:hidden p-4 space-y-4">
@@ -886,13 +886,13 @@ export default function AdminPanel() {
                                                         <div className="flex justify-between items-start mb-4">
                                                             <div className="overflow-hidden">
                                                                 <h4 className="font-bold text-sm tracking-wide truncate">{mapping.label}</h4>
-                                                                <p className="text-xs text-white/40 mt-1 truncate">{mapping.user?.email || 'N/A'}</p>
+                                                                <p className="text-xs text-subtle mt-1 truncate">{mapping.user?.email || 'N/A'}</p>
                                                             </div>
-                                                            <span className="px-2 py-1 ml-2 rounded-md text-[10px] uppercase font-bold shrink-0 bg-white/10 text-white/60">
+                                                            <span className="px-2 py-1 ml-2 rounded-md text-[10px] uppercase font-bold shrink-0 bg-white/10 text-muted">
                                                                 Std
                                                             </span>
                                                         </div>
-                                                        <div className="space-y-2 text-xs bg-black/20 rounded-xl p-3 mb-4 text-white/60">
+                                                        <div className="space-y-2 text-xs bg-black/20 rounded-xl p-3 mb-4 text-muted">
                                                             <div className="flex items-center gap-2 truncate">
                                                                 <Zap className="w-3 h-3 text-yellow-400 shrink-0" />
                                                                 <span className="truncate">{mapping.usageSensorId}</span>
@@ -933,7 +933,7 @@ export default function AdminPanel() {
                                                         <div className="flex justify-between items-start mb-4">
                                                             <div className="overflow-hidden">
                                                                 <h4 className="font-bold text-sm tracking-wide truncate text-purple-200">{groupLabel}</h4>
-                                                                <p className="text-xs text-white/40 mt-1 truncate">{userEmail}</p>
+                                                                <p className="text-xs text-subtle mt-1 truncate">{userEmail}</p>
                                                             </div>
                                                             <span className="px-2 py-1 ml-2 rounded-md text-[10px] uppercase font-bold shrink-0 bg-purple-500/20 text-purple-400">
                                                                 Virtuell
@@ -942,14 +942,14 @@ export default function AdminPanel() {
 
                                                         {/* Condensed View of Components */}
                                                         <div className="space-y-1 mb-4">
-                                                            <p className="text-[10px] text-white/40 italic mb-2">{group.length} Komponente(n)</p>
+                                                            <p className="text-[10px] text-subtle italic mb-2">{group.length} Komponente(n)</p>
                                                             {group.slice(0, 3).map((m: any, i: number) => (
-                                                                <div key={i} className="text-[10px] text-white/50 flex justify-between">
+                                                                <div key={i} className="text-[10px] text-subtle flex justify-between">
                                                                     <span className="truncate max-w-[70%]">{m.usageSensorId}</span>
                                                                     <span>x{m.factor.toFixed(2)}</span>
                                                                 </div>
                                                             ))}
-                                                            {group.length > 3 && <p className="text-[10px] text-white/30 text-center">...</p>}
+                                                            {group.length > 3 && <p className="text-[10px] text-subtle text-center">...</p>}
                                                         </div>
 
                                                         <div className="flex justify-end gap-2 border-t border-white/5 pt-3">
@@ -970,12 +970,12 @@ export default function AdminPanel() {
                                 <table className="w-full text-left hidden md:table">
                                     <thead>
                                         <tr className="border-b border-border bg-white/5">
-                                            <th className="px-6 py-4 text-xs font-semibold text-white/40 uppercase">Label</th>
-                                            <th className="px-6 py-4 text-xs font-semibold text-white/40 uppercase">Besitzer</th>
-                                            <th className="px-6 py-4 text-xs font-semibold text-white/40 uppercase">Sensoren</th>
-                                            <th className="px-6 py-4 text-xs font-semibold text-white/40 uppercase">Faktor</th>
-                                            <th className="px-6 py-4 text-xs font-semibold text-white/40 uppercase">Typ</th>
-                                            <th className="px-6 py-4 text-xs font-semibold text-white/40 uppercase text-right">Aktionen</th>
+                                            <th className="px-6 py-4 text-xs font-semibold text-subtle uppercase">Label</th>
+                                            <th className="px-6 py-4 text-xs font-semibold text-subtle uppercase">Besitzer</th>
+                                            <th className="px-6 py-4 text-xs font-semibold text-subtle uppercase">Sensoren</th>
+                                            <th className="px-6 py-4 text-xs font-semibold text-subtle uppercase">Faktor</th>
+                                            <th className="px-6 py-4 text-xs font-semibold text-subtle uppercase">Typ</th>
+                                            <th className="px-6 py-4 text-xs font-semibold text-subtle uppercase text-right">Aktionen</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-border">
@@ -1015,27 +1015,27 @@ export default function AdminPanel() {
                                                     return (
                                                         <tr key={mapping.id} className="hover:bg-white/5 transition-colors group">
                                                             <td className="px-6 py-4 font-medium">{mapping.label}</td>
-                                                            <td className="px-6 py-4 text-sm text-white/60">{mapping.user?.email || 'N/A'}</td>
+                                                            <td className="px-6 py-4 text-sm text-muted">{mapping.user?.email || 'N/A'}</td>
                                                             <td className="px-6 py-4">
                                                                 <div className="flex flex-col gap-1">
-                                                                    <div className="flex items-center gap-2 text-xs text-white/60">
+                                                                    <div className="flex items-center gap-2 text-xs text-muted">
                                                                         <Zap className="w-3 h-3 text-yellow-400" /> {mapping.usageSensorId}
                                                                     </div>
-                                                                    <div className="flex items-center gap-2 text-xs text-white/60">
+                                                                    <div className="flex items-center gap-2 text-xs text-muted">
                                                                         <LinkIcon className="w-3 h-3 text-blue-400" /> {mapping.priceSensorId}
                                                                     </div>
                                                                 </div>
                                                             </td>
                                                             <td className="px-6 py-4 text-sm font-mono text-primary font-bold">{mapping.factor?.toFixed(2)}</td>
                                                             <td className="px-6 py-4">
-                                                                <span className="px-2 py-1 rounded-lg text-xs font-bold bg-white/10 text-white/60">
+                                                                <span className="px-2 py-1 rounded-lg text-xs font-bold bg-white/10 text-muted">
                                                                     Standard
                                                                 </span>
                                                             </td>
                                                             <td className="px-6 py-4 text-right flex justify-end gap-2">
                                                                 <button
                                                                     onClick={() => handleEditMapping(mapping)}
-                                                                    className="p-2 hover:bg-white/10 text-white/60 hover:text-white rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                                                                    className="p-2 hover:bg-white/10 text-muted hover:text-white rounded-lg transition-colors opacity-0 group-hover:opacity-100"
                                                                     title="Bearbeiten"
                                                                 >
                                                                     <Edit className="w-4 h-4" />
@@ -1064,11 +1064,11 @@ export default function AdminPanel() {
                                                     return (
                                                         <tr key={'group-' + item.id} className="hover:bg-purple-500/5 transition-colors group bg-purple-500/5 border-l-4 border-l-purple-500/50">
                                                             <td className="px-6 py-4 font-medium text-purple-200">{groupLabel}</td>
-                                                            <td className="px-6 py-4 text-sm text-white/60 max-w-[200px] truncate" title={userLabel}>
+                                                            <td className="px-6 py-4 text-sm text-muted max-w-[200px] truncate" title={userLabel}>
                                                                 {userLabel || 'N/A'}
                                                             </td>
                                                             <td className="px-6 py-4">
-                                                                <div className="flex flex-col gap-1 text-xs text-white/50">
+                                                                <div className="flex flex-col gap-1 text-xs text-subtle">
                                                                     <span className="italic">{group.length} Komponente(n)</span>
                                                                     {/* Show first 2 components as example */}
                                                                     {group.slice(0, 2).map((m: any, idx: number) => (
@@ -1077,7 +1077,7 @@ export default function AdminPanel() {
                                                                     {group.length > 2 && <span className="opacity-50">...</span>}
                                                                 </div>
                                                             </td>
-                                                            <td className="px-6 py-4 text-sm font-mono text-white/40">-</td>
+                                                            <td className="px-6 py-4 text-sm font-mono text-subtle">-</td>
                                                             <td className="px-6 py-4">
                                                                 <span className="px-2 py-1 rounded-lg text-xs font-bold bg-purple-500/20 text-purple-400">
                                                                     Virtuell
@@ -1122,22 +1122,22 @@ export default function AdminPanel() {
                         </button>
                     </div>
 
-                    <div className="glass rounded-3xl overflow-hidden">
+                    <div className="surface rounded-2xl overflow-hidden">
                         {loading ? (
-                            <div className="p-10 text-center text-white/40 flex items-center justify-center gap-2">
+                            <div className="p-10 text-center text-subtle flex items-center justify-center gap-2">
                                 <Loader2 className="w-5 h-5 animate-spin" /> Lade...
                             </div>
                         ) : users.length === 0 ? (
-                            <div className="p-10 text-center text-white/40">Keine Benutzer gefunden.</div>
+                            <div className="p-10 text-center text-subtle">Keine Benutzer gefunden.</div>
                         ) : (
                             <table className="w-full text-left">
                                 <thead>
                                     <tr className="border-b border-border bg-white/5">
-                                        <th className="px-6 py-4 text-xs font-semibold text-white/40 uppercase">E-Mail</th>
-                                        <th className="px-6 py-4 text-xs font-semibold text-white/40 uppercase">Rolle</th>
-                                        <th className="px-6 py-4 text-xs font-semibold text-white/40 uppercase">Abschlag</th>
-                                        <th className="px-6 py-4 text-xs font-semibold text-white/40 uppercase">Erstellt</th>
-                                        <th className="px-6 py-4 text-xs font-semibold text-white/40 uppercase text-right">Aktionen</th>
+                                        <th className="px-6 py-4 text-xs font-semibold text-subtle uppercase">E-Mail</th>
+                                        <th className="px-6 py-4 text-xs font-semibold text-subtle uppercase">Rolle</th>
+                                        <th className="px-6 py-4 text-xs font-semibold text-subtle uppercase">Abschlag</th>
+                                        <th className="px-6 py-4 text-xs font-semibold text-subtle uppercase">Erstellt</th>
+                                        <th className="px-6 py-4 text-xs font-semibold text-subtle uppercase text-right">Aktionen</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-border">
@@ -1145,23 +1145,23 @@ export default function AdminPanel() {
                                         <tr key={user.id} className="hover:bg-white/5 transition-colors group">
                                             <td className="px-6 py-4 font-medium">{user.email}</td>
                                             <td className="px-6 py-4">
-                                                <span className={`px-2 py-1 rounded-lg text-xs font-bold ${user.role === 'ADMIN' ? 'bg-primary/20 text-primary' : 'bg-white/10 text-white/60'}`}>
+                                                <span className={`px-2 py-1 rounded-lg text-xs font-bold ${user.role === 'ADMIN' ? 'bg-primary/20 text-primary' : 'bg-white/10 text-muted'}`}>
                                                     {user.role}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 text-sm font-mono">
                                                 {(() => {
                                                     const current = getAdvanceForMonth(user.advancePlans || [], toMonthKey(new Date()));
-                                                    return current !== null ? `${current.toFixed(2)} € / Monat` : <span className="text-white/30">–</span>;
+                                                    return current !== null ? `${current.toFixed(2)} € / Monat` : <span className="text-subtle">–</span>;
                                                 })()}
                                             </td>
-                                            <td className="px-6 py-4 text-white/40 text-sm">
+                                            <td className="px-6 py-4 text-subtle text-sm">
                                                 {new Date(user.createdAt).toLocaleDateString('de-DE')}
                                             </td>
                                             <td className="px-6 py-4 text-right flex justify-end gap-2">
                                                 <button
                                                     onClick={() => handleEditUser(user)}
-                                                    className="p-2 hover:bg-white/10 text-white/60 hover:text-white rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                                                    className="p-2 hover:bg-white/10 text-muted hover:text-white rounded-lg transition-colors opacity-0 group-hover:opacity-100"
                                                     title="Bearbeiten"
                                                 >
                                                     <Edit className="w-4 h-4" />
@@ -1184,17 +1184,17 @@ export default function AdminPanel() {
             }
 
             {/* Virtual Counter Section */}
-            <div className="glass p-8 rounded-3xl border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
+            <div className="surface p-8 rounded-2xl bg-gradient-to-br from-primary/5 to-transparent">
                 <h3 className="text-lg font-semibold flex items-center gap-2 mb-4">
                     <Calculator className="w-5 h-5 text-primary" />
                     Virtuelle Zähler
                 </h3>
-                <p className="text-sm text-white/60 mb-6">
+                <p className="text-sm text-muted mb-6">
                     Kombinieren Sie mehrere Sensoren zu einem virtuellen Zähler mit individuellen Faktoren.
                 </p>
                 <button
                     onClick={() => setShowVirtualModal(true)}
-                    className="px-6 py-3 bg-primary text-white rounded-xl font-bold shadow-lg shadow-primary/20 hover:scale-105 transition-transform text-sm"
+                    className="px-6 py-3 bg-primary text-primary-foreground rounded-xl font-bold hover:bg-primary-hover transition-colors text-sm"
                 >
                     Virtuellen Zähler erstellen
                 </button>
@@ -1204,11 +1204,11 @@ export default function AdminPanel() {
             {
                 showAddModal && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
-                        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={closeMappingModal} />
+                        <div className="absolute inset-0 bg-black/60" onClick={closeMappingModal} />
                         <motion.div
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
-                            className="relative glass w-full max-w-lg rounded-3xl p-6 md:rounded-[40px] md:p-8 border-primary/20 shadow-2xl"
+                            className="relative surface w-full max-w-lg rounded-2xl p-6 md:p-8 shadow-2xl"
                         >
                             <div className="flex justify-between items-center mb-6">
                                 <h3 className="text-xl font-bold flex items-center gap-2">
@@ -1222,10 +1222,10 @@ export default function AdminPanel() {
 
                             <form onSubmit={handleAddMapping} className="space-y-4">
                                 <div>
-                                    <label className="text-xs font-bold text-white/40 ml-1 mb-2 block">Benutzer zuweisen (Mehrfachauswahl möglich)</label>
+                                    <label className="text-xs font-bold text-subtle ml-1 mb-2 block">Benutzer zuweisen (Mehrfachauswahl möglich)</label>
                                     <div className="bg-white/5 border border-white/10 rounded-2xl p-2 max-h-40 overflow-y-auto custom-scrollbar">
                                         {users.length === 0 ? (
-                                            <div className="text-sm text-white/40 p-2 italic">Keine Benutzer gefunden</div>
+                                            <div className="text-sm text-subtle p-2 italic">Keine Benutzer gefunden</div>
                                         ) : (
                                             <div className="space-y-1">
                                                 {/* "Select All" Option? Maybe later. For now simple list. */}
@@ -1244,11 +1244,11 @@ export default function AdminPanel() {
                                                             disabled={!!editingId} // Disable editing user assignment for now
                                                             className="w-4 h-4 rounded border-white/20 bg-white/10 text-primary focus:ring-primary/50"
                                                         />
-                                                        <span className={`text-sm ${newMapping.targetUserIds.includes(u.id) ? 'text-white font-medium' : 'text-white/60 group-hover:text-white/80'}`}>
+                                                        <span className={`text-sm ${newMapping.targetUserIds.includes(u.id) ? 'text-white font-medium' : 'text-muted group-hover:text-white/80'}`}>
                                                             {u.email}
                                                         </span>
                                                         {editingId && newMapping.targetUserIds.includes(u.id) && (
-                                                            <span className="text-[10px] bg-white/10 px-1.5 py-0.5 rounded text-white/40 ml-auto">
+                                                            <span className="text-[10px] bg-white/10 px-1.5 py-0.5 rounded text-subtle ml-auto">
                                                                 {u.role}
                                                             </span>
                                                         )}
@@ -1257,11 +1257,11 @@ export default function AdminPanel() {
                                             </div>
                                         )}
                                     </div>
-                                    {editingId && <p className="text-[10px] text-white/40 mt-1 ml-1">Benutzerzuweisung kann beim Bearbeiten nicht geändert werden.</p>}
+                                    {editingId && <p className="text-[10px] text-subtle mt-1 ml-1">Benutzerzuweisung kann beim Bearbeiten nicht geändert werden.</p>}
                                 </div>
 
                                 <div>
-                                    <label className="text-xs font-bold text-white/40 ml-1">Label</label>
+                                    <label className="text-xs font-bold text-subtle ml-1">Label</label>
                                     <input
                                         type="text"
                                         value={newMapping.label}
@@ -1296,7 +1296,7 @@ export default function AdminPanel() {
                                 />
 
                                 <div>
-                                    <label className="text-xs font-bold text-white/40 ml-1">Faktor</label>
+                                    <label className="text-xs font-bold text-subtle ml-1">Faktor</label>
                                     <input
                                         type="number"
                                         step="0.01"
@@ -1308,10 +1308,10 @@ export default function AdminPanel() {
                                 </div>
 
                                 <div className="pt-4 flex gap-3">
-                                    <button type="button" onClick={closeMappingModal} className="flex-1 py-3 text-white/40">
+                                    <button type="button" onClick={closeMappingModal} className="flex-1 py-3 text-subtle">
                                         Abbrechen
                                     </button>
-                                    <button type="submit" disabled={saving} className="flex-1 bg-primary text-white font-bold py-3 rounded-2xl flex items-center justify-center gap-2">
+                                    <button type="submit" disabled={saving} className="flex-1 bg-primary text-primary-foreground font-bold py-3 rounded-2xl flex items-center justify-center gap-2">
                                         {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                                         Speichern
                                     </button>
@@ -1326,11 +1326,11 @@ export default function AdminPanel() {
             {
                 showUserModal && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
-                        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={closeUserModal} />
+                        <div className="absolute inset-0 bg-black/60" onClick={closeUserModal} />
                         <motion.div
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
-                            className="relative glass w-full max-w-lg rounded-3xl p-6 md:rounded-[40px] md:p-8 border-primary/20 shadow-2xl"
+                            className="relative surface w-full max-w-lg rounded-2xl p-6 md:p-8 shadow-2xl"
                         >
                             <div className="flex justify-between items-center mb-6">
                                 <h3 className="text-xl font-bold flex items-center gap-2">
@@ -1344,7 +1344,7 @@ export default function AdminPanel() {
 
                             <form onSubmit={handleAddUser} className="space-y-4">
                                 <div>
-                                    <label className="text-xs font-bold text-white/40 ml-1">E-Mail</label>
+                                    <label className="text-xs font-bold text-subtle ml-1">E-Mail</label>
                                     <input
                                         type="email"
                                         value={newUser.email}
@@ -1355,7 +1355,7 @@ export default function AdminPanel() {
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-xs font-bold text-white/40 ml-1">
+                                    <label className="text-xs font-bold text-subtle ml-1">
                                         {editingUserId ? 'Passwort (leer lassen zum Beibehalten)' : 'Passwort'}
                                     </label>
                                     <input
@@ -1367,7 +1367,7 @@ export default function AdminPanel() {
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-xs font-bold text-white/40 ml-1">Rolle</label>
+                                    <label className="text-xs font-bold text-subtle ml-1">Rolle</label>
                                     <select
                                         value={newUser.role}
                                         onChange={e => setNewUser({ ...newUser, role: e.target.value })}
@@ -1390,7 +1390,7 @@ export default function AdminPanel() {
                                         <label htmlFor="autoBilling" className="text-sm font-medium cursor-pointer text-white">
                                             Automatische Abrechnung
                                         </label>
-                                        <span className="text-xs text-white/40">Soll für diesen Nutzer automatisch abgerechnet werden?</span>
+                                        <span className="text-xs text-subtle">Soll für diesen Nutzer automatisch abgerechnet werden?</span>
                                     </div>
                                 </div>
 
@@ -1400,7 +1400,7 @@ export default function AdminPanel() {
                                 />
 
                                 <div className="p-4 bg-white/5 rounded-2xl border border-white/5 space-y-4">
-                                    <h4 className="font-bold text-sm text-white/60 flex items-center gap-2">
+                                    <h4 className="font-bold text-sm text-muted flex items-center gap-2">
                                         <Zap className="w-4 h-4 text-yellow-400" />
                                         Preiskonfiguration
                                     </h4>
@@ -1417,7 +1417,7 @@ export default function AdminPanel() {
                                             <label htmlFor="allowBatteryPricing" className="text-sm font-medium cursor-pointer text-white">
                                                 Batterie-Vorteil gewähren
                                             </label>
-                                            <span className="text-xs text-white/40">Darf dieser Nutzer vom internen Preis profitieren, auch wenn der Strom aus dem Akku kommt?</span>
+                                            <span className="text-xs text-subtle">Darf dieser Nutzer vom internen Preis profitieren, auch wenn der Strom aus dem Akku kommt?</span>
                                         </div>
                                     </div>
 
@@ -1433,7 +1433,7 @@ export default function AdminPanel() {
                                             <label htmlFor="enablePvBilling" className="text-sm font-medium cursor-pointer text-white">
                                                 PV-Vorteile aktivieren und konfigurieren
                                             </label>
-                                            <span className="text-xs text-white/40">Nutzer erhält günstigen PV/Akku-Tarif. Wenn deaktiviert, gilt reiner Netzbezug.</span>
+                                            <span className="text-xs text-subtle">Nutzer erhält günstigen PV/Akku-Tarif. Wenn deaktiviert, gilt reiner Netzbezug.</span>
                                         </div>
                                     </div>
 
@@ -1451,13 +1451,13 @@ export default function AdminPanel() {
                                                     <label htmlFor="showPvDetails" className="text-sm font-medium cursor-pointer text-white">
                                                         Details auf Rechnung anzeigen
                                                     </label>
-                                                    <span className="text-xs text-white/40">Soll der Nutzer sehen, wie viel Energie intern bezogen wurde? Wenn aus, sieht er nur Gesamtsumme (verdeckter Rabatt).</span>
+                                                    <span className="text-xs text-subtle">Soll der Nutzer sehen, wie viel Energie intern bezogen wurde? Wenn aus, sieht er nur Gesamtsumme (verdeckter Rabatt).</span>
                                                 </div>
                                             </div>
 
                                             <div className="grid grid-cols-2 gap-4 pt-2 border-t border-white/5">
                                                 <div>
-                                                    <label className="text-xs font-bold text-white/40 ml-1">Eigener Interner Preis (€) *</label>
+                                                    <label className="text-xs font-bold text-subtle ml-1">Eigener Interner Preis (€) *</label>
                                                     <input
                                                         type="number"
                                                         step="0.001"
@@ -1468,7 +1468,7 @@ export default function AdminPanel() {
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="text-xs font-bold text-white/40 ml-1">Netz-Puffer (Watt) *</label>
+                                                    <label className="text-xs font-bold text-subtle ml-1">Netz-Puffer (Watt) *</label>
                                                     <input
                                                         type="number"
                                                         step="1"
@@ -1477,7 +1477,7 @@ export default function AdminPanel() {
                                                         onChange={e => setNewUser({ ...newUser, customGridBuffer: e.target.value === "" ? "" : parseInt(e.target.value) })}
                                                         className="w-full mt-1 bg-black/20 border border-white/10 rounded-xl py-2 px-3 outline-none focus:border-primary/50 text-sm"
                                                     />
-                                                    <p className="text-[10px] text-white/30 mt-1 leading-tight">
+                                                    <p className="text-[10px] text-subtle mt-1 leading-tight">
                                                         Toleranz für minimalen Netzbezug. Solange der Bezug unter diesem Wert liegt (z.B. Regelträgheit), wird der Strom als "Intern" abgerechnet.
                                                     </p>
                                                 </div>
@@ -1487,10 +1487,10 @@ export default function AdminPanel() {
                                 </div>
 
                                 <div className="pt-4 flex gap-3">
-                                    <button type="button" onClick={closeUserModal} className="flex-1 py-3 text-white/40">
+                                    <button type="button" onClick={closeUserModal} className="flex-1 py-3 text-subtle">
                                         Abbrechen
                                     </button>
-                                    <button type="submit" disabled={saving} className="flex-1 bg-primary text-white font-bold py-3 rounded-2xl flex items-center justify-center gap-2">
+                                    <button type="submit" disabled={saving} className="flex-1 bg-primary text-primary-foreground font-bold py-3 rounded-2xl flex items-center justify-center gap-2">
                                         {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : (editingUserId ? <Save className="w-4 h-4" /> : <UserPlus className="w-4 h-4" />)}
                                         {editingUserId ? 'Speichern' : 'Erstellen'}
                                     </button>
@@ -1505,11 +1505,11 @@ export default function AdminPanel() {
             {
                 showVirtualModal && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
-                        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowVirtualModal(false)} />
+                        <div className="absolute inset-0 bg-black/60" onClick={() => setShowVirtualModal(false)} />
                         <motion.div
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
-                            className="relative glass w-full max-w-2xl rounded-3xl p-6 md:rounded-[40px] md:p-8 border-primary/20 shadow-2xl max-h-[90vh] overflow-y-auto"
+                            className="relative surface w-full max-w-2xl rounded-2xl p-6 md:p-8 shadow-2xl max-h-[90vh] overflow-y-auto"
                         >
                             <div className="flex justify-between items-center mb-6">
                                 <h3 className="text-xl font-bold flex items-center gap-2">
@@ -1536,10 +1536,10 @@ export default function AdminPanel() {
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="text-xs font-bold text-white/40 ml-1 mb-2 block">Benutzer zuweisen (Mehrfachauswahl möglich)</label>
+                                    <label className="text-xs font-bold text-subtle ml-1 mb-2 block">Benutzer zuweisen (Mehrfachauswahl möglich)</label>
                                     <div className="bg-white/5 border border-white/10 rounded-2xl p-2 max-h-40 overflow-y-auto custom-scrollbar">
                                         {users.length === 0 ? (
-                                            <div className="text-sm text-white/40 p-2 italic">Keine Benutzer gefunden</div>
+                                            <div className="text-sm text-subtle p-2 italic">Keine Benutzer gefunden</div>
                                         ) : (
                                             <div className="space-y-1">
                                                 {/* "Select All" Option? Maybe later. For now simple list. */}
@@ -1557,7 +1557,7 @@ export default function AdminPanel() {
                                                             }}
                                                             className="w-4 h-4 rounded border-white/20 bg-white/10 text-primary focus:ring-primary/50"
                                                         />
-                                                        <span className={`text-sm ${virtualMeter.targetUserIds.includes(u.id) ? 'text-white font-medium' : 'text-white/60 group-hover:text-white/80'}`}>
+                                                        <span className={`text-sm ${virtualMeter.targetUserIds.includes(u.id) ? 'text-white font-medium' : 'text-muted group-hover:text-white/80'}`}>
                                                             {u.email}
                                                         </span>
                                                     </label>
@@ -1568,7 +1568,7 @@ export default function AdminPanel() {
                                 </div>
 
                                 <div>
-                                    <label className="text-xs font-bold text-white/40 ml-1">Name des virtuellen Zählers</label>
+                                    <label className="text-xs font-bold text-subtle ml-1">Name des virtuellen Zählers</label>
                                     <input
                                         type="text"
                                         value={virtualMeter.label}
@@ -1582,24 +1582,24 @@ export default function AdminPanel() {
                                 {/* Aktiv ab (globales Datum für die Gruppe) */}
                                 <div className="grid grid-cols-2 gap-3">
                                     <div>
-                                        <label className="text-xs font-bold text-white/40 ml-1">Aktiv ab (optional)</label>
+                                        <label className="text-xs font-bold text-subtle ml-1">Aktiv ab (optional)</label>
                                         <input
                                             type="date"
                                             value={virtualMeter.activeFrom}
                                             onChange={e => setVirtualMeter({ ...virtualMeter, activeFrom: e.target.value })}
                                             className="w-full mt-1 bg-white/5 border border-white/10 rounded-2xl py-3 px-4 outline-none focus:border-primary/50 text-sm"
                                         />
-                                        <p className="text-[10px] text-white/30 mt-1 ml-1">Zähler gilt erst ab diesem Datum</p>
+                                        <p className="text-[10px] text-subtle mt-1 ml-1">Zähler gilt erst ab diesem Datum</p>
                                     </div>
                                     <div>
-                                        <label className="text-xs font-bold text-white/40 ml-1">Aktiv bis (optional)</label>
+                                        <label className="text-xs font-bold text-subtle ml-1">Aktiv bis (optional)</label>
                                         <input
                                             type="date"
                                             value={virtualMeter.activeTo}
                                             onChange={e => setVirtualMeter({ ...virtualMeter, activeTo: e.target.value })}
                                             className="w-full mt-1 bg-white/5 border border-white/10 rounded-2xl py-3 px-4 outline-none focus:border-primary/50 text-sm"
                                         />
-                                        <p className="text-[10px] text-white/30 mt-1 ml-1">Leer = unbegrenzt gültig</p>
+                                        <p className="text-[10px] text-subtle mt-1 ml-1">Leer = unbegrenzt gültig</p>
                                     </div>
                                 </div>
 
@@ -1614,14 +1614,14 @@ export default function AdminPanel() {
                                         </div>
                                         <div>
                                             <p className="text-sm font-bold">Pauschal-Sensor</p>
-                                            <p className="text-xs text-white/40">Fixer kWh/Tag Wert statt Shelly-Sensor</p>
+                                            <p className="text-xs text-subtle">Fixer kWh/Tag Wert statt Shelly-Sensor</p>
                                         </div>
                                     </label>
 
                                     {virtualMeter.isFlatRate && (
                                         <div className="mt-4 space-y-3">
                                             <div>
-                                                <label className="text-xs font-bold text-white/40 ml-1">kWh pro Tag</label>
+                                                <label className="text-xs font-bold text-subtle ml-1">kWh pro Tag</label>
                                                 <div className="flex items-center gap-2 mt-1">
                                                     <input
                                                         type="number"
@@ -1632,9 +1632,9 @@ export default function AdminPanel() {
                                                         className="flex-1 bg-white/5 border border-primary/30 rounded-2xl py-3 px-4 outline-none focus:border-primary/60 font-mono text-lg"
                                                         required={virtualMeter.isFlatRate}
                                                     />
-                                                    <span className="text-white/40 text-sm font-mono">kWh/Tag</span>
+                                                    <span className="text-subtle text-sm font-mono">kWh/Tag</span>
                                                 </div>
-                                                <p className="text-[10px] text-white/30 mt-1 ml-1">
+                                                <p className="text-[10px] text-subtle mt-1 ml-1">
                                                     Mit Divider {virtualMeter.divider}: {(virtualMeter.flatRateKwhPerDay / (virtualMeter.divider || 1)).toFixed(2)} kWh/Tag pro Nutzer
                                                     &nbsp;≈ {((virtualMeter.flatRateKwhPerDay / (virtualMeter.divider || 1)) / 24 * 1000).toFixed(0)} W konstant
                                                 </p>
@@ -1647,7 +1647,7 @@ export default function AdminPanel() {
                                 {!virtualMeter.isFlatRate && (
                                     <>
                                     <div className="flex justify-between items-center">
-                                        <label className="text-xs font-bold text-white/40">Sensoren & Rechenoperationen</label>
+                                        <label className="text-xs font-bold text-subtle">Sensoren & Rechenoperationen</label>
                                         <button
                                             type="button"
                                             onClick={addVirtualSensor}
@@ -1716,9 +1716,9 @@ export default function AdminPanel() {
                                 )} {/* end !isFlatRate sensor section */}
 
                                 <div>
-                                    <label className="text-xs font-bold text-white/40 ml-1">Teilen durch (Divider)</label>
+                                    <label className="text-xs font-bold text-subtle ml-1">Teilen durch (Divider)</label>
                                     <div className="flex items-center gap-2 mt-1">
-                                        <span className="text-xl font-bold text-white/40">/</span>
+                                        <span className="text-xl font-bold text-subtle">/</span>
                                         <input
                                             type="number"
                                             step="0.01"
@@ -1728,7 +1728,7 @@ export default function AdminPanel() {
                                             className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 outline-none focus:border-primary/50 font-mono text-lg"
                                         />
                                     </div>
-                                    <p className="text-[10px] text-white/30 mt-1 ml-1">
+                                    <p className="text-[10px] text-subtle mt-1 ml-1">
                                         Ergebnis wird durch diesen Wert geteilt (z.B. 3 Parteien &rarr; 3).
                                     </p>
                                 </div>
@@ -1742,7 +1742,7 @@ export default function AdminPanel() {
                                 />
 
                                 {!virtualMeter.isFlatRate && (
-                                <div className="bg-white/5 rounded-2xl p-4 text-sm text-white/60 font-mono text-xs">
+                                <div className="bg-white/5 rounded-2xl p-4 text-sm text-muted font-mono text-xs">
                                     <p className="font-bold text-white mb-2 font-sans">Formel Vorschau:</p>
                                     <div className="p-3 bg-black/20 rounded-xl overflow-x-auto whitespace-nowrap">
                                         (
@@ -1758,10 +1758,10 @@ export default function AdminPanel() {
                                 )}
 
                                 <div className="pt-4 flex gap-3">
-                                    <button type="button" onClick={() => setShowVirtualModal(false)} className="flex-1 py-3 text-white/40">
+                                    <button type="button" onClick={() => setShowVirtualModal(false)} className="flex-1 py-3 text-subtle">
                                         Abbrechen
                                     </button>
-                                    <button type="submit" disabled={saving} className="flex-1 bg-primary text-white font-bold py-3 rounded-2xl flex items-center justify-center gap-2">
+                                    <button type="submit" disabled={saving} className="flex-1 bg-primary text-primary-foreground font-bold py-3 rounded-2xl flex items-center justify-center gap-2">
                                         {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Calculator className="w-4 h-4" />}
                                         Virtuellen Zähler erstellen
                                     </button>
@@ -1789,30 +1789,30 @@ export default function AdminPanel() {
                             </button>
                         </div>
 
-                        <div className="glass overflow-hidden rounded-[32px] border border-white/5">
+                        <div className="surface overflow-hidden rounded-2xl border border-white/5">
                             <table className="w-full">
                                 <thead className="bg-white/5">
                                     <tr>
-                                        <th className="text-left p-6 text-xs text-white/40 uppercase tracking-wider font-bold">Nr.</th>
-                                        <th className="text-left p-6 text-xs text-white/40 uppercase tracking-wider font-bold">User</th>
-                                        <th className="text-left p-6 text-xs text-white/40 uppercase tracking-wider font-bold">Zeitraum</th>
-                                        <th className="text-right p-6 text-xs text-white/40 uppercase tracking-wider font-bold">Verbrauch</th>
-                                        <th className="text-right p-6 text-xs text-white/40 uppercase tracking-wider font-bold">Gewinn</th>
-                                        <th className="text-right p-6 text-xs text-white/40 uppercase tracking-wider font-bold">Betrag</th>
+                                        <th className="text-left p-6 text-xs text-subtle uppercase tracking-wider font-bold">Nr.</th>
+                                        <th className="text-left p-6 text-xs text-subtle uppercase tracking-wider font-bold">User</th>
+                                        <th className="text-left p-6 text-xs text-subtle uppercase tracking-wider font-bold">Zeitraum</th>
+                                        <th className="text-right p-6 text-xs text-subtle uppercase tracking-wider font-bold">Verbrauch</th>
+                                        <th className="text-right p-6 text-xs text-subtle uppercase tracking-wider font-bold">Gewinn</th>
+                                        <th className="text-right p-6 text-xs text-subtle uppercase tracking-wider font-bold">Betrag</th>
                                         <th className="p-6"></th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-white/5">
                                     {bills.length === 0 ? (
                                         <tr>
-                                            <td colSpan={7} className="p-10 text-center text-white/30 italic">Keine Abrechnungen gefunden</td>
+                                            <td colSpan={7} className="p-10 text-center text-subtle italic">Keine Abrechnungen gefunden</td>
                                         </tr>
                                     ) : (
                                         bills.map(bill => (
                                             <tr key={bill.id} className="hover:bg-white/5 transition-colors">
                                                 <td className="p-6 font-mono text-xs opacity-60">{bill.id.substring(0, 8)}</td>
                                                 <td className="p-6 text-sm">{bill.user?.email || 'Unbekannt'}</td>
-                                                <td className="p-6 text-sm text-white/60">
+                                                <td className="p-6 text-sm text-muted">
                                                     {new Date(bill.startDate).toLocaleDateString()} - {new Date(bill.endDate).toLocaleDateString()}
                                                 </td>
                                                 <td className="p-6 text-right font-mono text-sm">{bill.totalUsage.toFixed(1)} kWh</td>
@@ -1830,14 +1830,14 @@ export default function AdminPanel() {
                                                 <td className="p-6 flex justify-end gap-2">
                                                     <button
                                                         onClick={(e) => { e.stopPropagation(); setViewBill(bill); }}
-                                                        className="p-2 hover:bg-white/10 rounded-lg text-white/60 hover:text-white transition-colors"
+                                                        className="p-2 hover:bg-white/10 rounded-lg text-muted hover:text-white transition-colors"
                                                         title="Details ansehen"
                                                     >
                                                         <Eye className="w-4 h-4" />
                                                     </button>
                                                     <button
                                                         onClick={(e) => { e.stopPropagation(); handleDownloadPDF(bill); }}
-                                                        className="p-2 hover:bg-white/10 rounded-lg text-white/60 hover:text-white transition-colors"
+                                                        className="p-2 hover:bg-white/10 rounded-lg text-muted hover:text-white transition-colors"
                                                         title="Download PDF"
                                                     >
                                                         <Download className="w-4 h-4" />
@@ -1864,12 +1864,12 @@ export default function AdminPanel() {
             {/* SETTINGS TAB */}
             {
                 viewBill && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80 backdrop-blur-sm">
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80">
                         <div className="absolute inset-0" onClick={() => setViewBill(null)} />
                         <motion.div
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
-                            className="relative glass w-full max-w-3xl rounded-[40px] p-8 border-primary/20 shadow-2xl max-h-[90vh] overflow-y-auto z-10"
+                            className="relative surface w-full max-w-3xl rounded-2xl p-8 shadow-2xl max-h-[90vh] overflow-y-auto z-10"
                         >
                             <div className="flex justify-between items-center mb-6">
                                 <h3 className="text-xl font-bold flex items-center gap-2">
@@ -1884,31 +1884,31 @@ export default function AdminPanel() {
                             <div className="space-y-6">
                                 <div className="grid grid-cols-2 gap-4 text-sm bg-white/5 p-4 rounded-2xl">
                                     <div>
-                                        <p className="text-white/40 text-xs uppercase font-bold">Rechnungs-Nr.</p>
+                                        <p className="text-xs text-subtle">Rechnungs-Nr.</p>
                                         <p className="font-mono text-lg">{viewBill.id.substring(0, 8)}</p>
                                     </div>
                                     <div>
-                                        <p className="text-white/40 text-xs uppercase font-bold">Benutzer</p>
+                                        <p className="text-xs text-subtle">Benutzer</p>
                                         <p className="font-medium">{viewBill.user?.email}</p>
                                     </div>
                                     <div>
-                                        <p className="text-white/40 text-xs uppercase font-bold">Zeitraum</p>
+                                        <p className="text-xs text-subtle">Zeitraum</p>
                                         <p>{new Date(viewBill.startDate).toLocaleDateString()} - {new Date(viewBill.endDate).toLocaleDateString()}</p>
                                     </div>
                                     <div>
-                                        <p className="text-white/40 text-xs uppercase font-bold">Erstellt am</p>
+                                        <p className="text-xs text-subtle">Erstellt am</p>
                                         <p>{new Date(viewBill.createdAt).toLocaleString()}</p>
                                     </div>
                                 </div>
 
-                                <div className="glass rounded-2xl overflow-hidden border border-white/5">
+                                <div className="surface rounded-2xl overflow-hidden border border-white/5">
                                     <table className="w-full text-sm">
                                         <thead className="bg-white/5">
                                             <tr>
-                                                <th className="p-4 text-left text-white/40 uppercase text-xs font-bold">Beschreibung</th>
-                                                <th className="p-4 text-right text-white/40 uppercase text-xs font-bold">Menge</th>
-                                                <th className="p-4 text-right text-white/40 uppercase text-xs font-bold">Ø Preis</th>
-                                                <th className="p-4 text-right text-white/40 uppercase text-xs font-bold">Summe</th>
+                                                <th className="p-4 text-left text-subtle uppercase text-xs font-bold">Beschreibung</th>
+                                                <th className="p-4 text-right text-subtle uppercase text-xs font-bold">Menge</th>
+                                                <th className="p-4 text-right text-subtle uppercase text-xs font-bold">Ø Preis</th>
+                                                <th className="p-4 text-right text-subtle uppercase text-xs font-bold">Summe</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-white/5">
@@ -1935,7 +1935,7 @@ export default function AdminPanel() {
                             </h2>
                         </div>
 
-                        <form onSubmit={saveSettings} className="glass p-8 rounded-[32px] border border-white/5 space-y-8 max-w-2xl">
+                        <form onSubmit={saveSettings} className="surface p-8 rounded-2xl border border-white/5 space-y-8 max-w-2xl">
                             <div>
                                 <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
                                     <Zap className="w-5 h-5 text-yellow-400" />
@@ -1954,14 +1954,14 @@ export default function AdminPanel() {
                                         <button
                                             type="button"
                                             onClick={() => setGridSensorMode('combined')}
-                                            className={`px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-md transition-all ${gridSensorMode === 'combined' ? 'bg-primary text-black' : 'text-white/40 hover:text-white'}`}
+                                            className={`px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-md transition-all ${gridSensorMode === 'combined' ? 'bg-primary text-black' : 'text-subtle hover:text-white'}`}
                                         >
                                             Ein Zähler (Kombiniert)
                                         </button>
                                         <button
                                             type="button"
                                             onClick={() => setGridSensorMode('split')}
-                                            className={`px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-md transition-all ${gridSensorMode === 'split' ? 'bg-primary text-black' : 'text-white/40 hover:text-white'}`}
+                                            className={`px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-md transition-all ${gridSensorMode === 'split' ? 'bg-primary text-black' : 'text-subtle hover:text-white'}`}
                                         >
                                             Getrennte Zähler
                                         </button>
@@ -2001,7 +2001,7 @@ export default function AdminPanel() {
                                             type="energy"
                                             placeholder="z.B. sensor.grid_export_cumulative"
                                         />
-                                        <p className="text-[10px] text-white/40 mt-1 ml-1">
+                                        <p className="text-[10px] text-subtle mt-1 ml-1">
                                             Optional: Wird benötigt, um den "Einspeisemengen-Gewinn" auf Rechnungen zu kalkulieren.
                                             Sollte ein Zählerstand (total increasing) sein.
                                         </p>
@@ -2016,7 +2016,7 @@ export default function AdminPanel() {
                                 </h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <label className="text-xs font-bold text-white/40 ml-1">Interner PV Preis (€/kWh)</label>
+                                        <label className="text-xs font-bold text-subtle ml-1">Interner PV Preis (€/kWh)</label>
                                         <input
                                             type="number"
                                             step="0.0001"
@@ -2024,10 +2024,10 @@ export default function AdminPanel() {
                                             onChange={e => setSystemSettings({ ...systemSettings, internalPrice: parseFloat(e.target.value) })}
                                             className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 mt-1 outline-none focus:border-primary/50 text-white"
                                         />
-                                        <p className="text-[10px] text-white/40 mt-1 ml-1">Standardpreis für internen Strom (wenn keine Nutzer-Override)</p>
+                                        <p className="text-[10px] text-subtle mt-1 ml-1">Standardpreis für internen Strom (wenn keine Nutzer-Override)</p>
                                     </div>
                                     <div>
-                                        <label className="text-xs font-bold text-white/40 ml-1">Netzpreis Fallback (€/kWh)</label>
+                                        <label className="text-xs font-bold text-subtle ml-1">Netzpreis Fallback (€/kWh)</label>
                                         <input
                                             type="number"
                                             step="0.0001"
@@ -2035,7 +2035,7 @@ export default function AdminPanel() {
                                             onChange={e => setSystemSettings({ ...systemSettings, gridFallbackPrice: parseFloat(e.target.value) })}
                                             className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 mt-1 outline-none focus:border-primary/50 text-white"
                                         />
-                                        <p className="text-[10px] text-white/40 mt-1 ml-1">Preis wenn keine Live-Daten verfügbar sind (z.B. Datenlücken)</p>
+                                        <p className="text-[10px] text-subtle mt-1 ml-1">Preis wenn keine Live-Daten verfügbar sind (z.B. Datenlücken)</p>
                                     </div>
                                 </div>
                             </div>
@@ -2071,7 +2071,7 @@ export default function AdminPanel() {
                                     />
                                     <label htmlFor="invertBatterySign" className="text-sm cursor-pointer flex-1">
                                         <span className="font-medium text-white">Batterie-Vorzeichen invertieren</span>
-                                        <p className="text-xs text-white/60 mt-1">
+                                        <p className="text-xs text-muted mt-1">
                                             Aktivieren, wenn dein Sensor negativ beim Laden und positiv beim Entladen meldet
                                         </p>
                                     </label>
@@ -2087,7 +2087,7 @@ export default function AdminPanel() {
                                 </h3>
                                 <div className="space-y-4">
                                     <div>
-                                        <label className="text-xs font-bold text-white/40 ml-1">Firmenname</label>
+                                        <label className="text-xs font-bold text-subtle ml-1">Firmenname</label>
                                         <input
                                             type="text"
                                             value={systemSettings.pdfCompanyName}
@@ -2097,7 +2097,7 @@ export default function AdminPanel() {
                                         />
                                     </div>
                                     <div>
-                                        <label className="text-xs font-bold text-white/40 ml-1">Firmenadresse</label>
+                                        <label className="text-xs font-bold text-subtle ml-1">Firmenadresse</label>
                                         <input
                                             type="text"
                                             value={systemSettings.pdfCompanyAddress}
@@ -2107,7 +2107,7 @@ export default function AdminPanel() {
                                         />
                                     </div>
                                     <div>
-                                        <label className="text-xs font-bold text-white/40 ml-1">Fußzeile</label>
+                                        <label className="text-xs font-bold text-subtle ml-1">Fußzeile</label>
                                         <textarea
                                             value={systemSettings.pdfFooterText}
                                             onChange={e => setSystemSettings({ ...systemSettings, pdfFooterText: e.target.value })}
@@ -2120,7 +2120,7 @@ export default function AdminPanel() {
                             </div>
 
                             <div className="pt-4">
-                                <button type="submit" disabled={saving} className="w-full bg-primary text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2 hover:brightness-110 transition-all">
+                                <button type="submit" disabled={saving} className="w-full bg-primary text-primary-foreground font-bold py-4 rounded-2xl flex items-center justify-center gap-2 hover:brightness-110 transition-all">
                                     {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
                                     Einstellungen speichern
                                 </button>
@@ -2133,11 +2133,11 @@ export default function AdminPanel() {
             {
                 showBillModal && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
-                        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowBillModal(false)} />
+                        <div className="absolute inset-0 bg-black/60" onClick={() => setShowBillModal(false)} />
                         <motion.div
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
-                            className="relative glass w-full max-w-2xl rounded-[40px] p-8 border-primary/20 shadow-2xl max-h-[90vh] overflow-y-auto"
+                            className="relative surface w-full max-w-2xl rounded-2xl p-8 shadow-2xl max-h-[90vh] overflow-y-auto"
                         >
                             <div className="flex justify-between items-center mb-6">
                                 <h3 className="text-xl font-bold flex items-center gap-2">
@@ -2151,25 +2151,25 @@ export default function AdminPanel() {
 
                             <form onSubmit={handleGenerateBill} className="space-y-4">
                                 <div>
-                                    <label className="text-xs font-bold text-white/40 ml-1">Benutzer</label>
+                                    <label className="text-xs font-bold text-subtle ml-1">Benutzer</label>
                                     <select
                                         value={newBill.targetUserId}
                                         onChange={e => setNewBill({ ...newBill, targetUserId: e.target.value })}
                                         className="w-full mt-1 bg-white/5 border border-white/10 rounded-2xl py-3 px-4 outline-none focus:border-primary/50 text-white"
                                         required
                                     >
-                                        <option value="" className="bg-slate-900">Bitte wählen...</option>
+                                        <option value="" className="bg-surface-raised">Bitte wählen...</option>
                                         {users.map(u => (
-                                            <option key={u.id} value={u.id} className="bg-slate-900">{u.email}</option>
+                                            <option key={u.id} value={u.id} className="bg-surface-raised">{u.email}</option>
                                         ))}
                                     </select>
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="text-xs font-bold text-white/40 ml-1">Startdatum</label>
+                                        <label className="text-xs font-bold text-subtle ml-1">Startdatum</label>
                                         <div className="relative">
-                                            <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+                                            <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-subtle" />
                                             <input
                                                 type="date"
                                                 value={newBill.startDate}
@@ -2180,9 +2180,9 @@ export default function AdminPanel() {
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="text-xs font-bold text-white/40 ml-1">Enddatum</label>
+                                        <label className="text-xs font-bold text-subtle ml-1">Enddatum</label>
                                         <div className="relative">
-                                            <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+                                            <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-subtle" />
                                             <input
                                                 type="date"
                                                 value={newBill.endDate}
@@ -2202,10 +2202,10 @@ export default function AdminPanel() {
                                 />
 
                                 <div className="pt-4 flex gap-3">
-                                    <button type="button" onClick={() => setShowBillModal(false)} className="flex-1 py-3 text-white/40">
+                                    <button type="button" onClick={() => setShowBillModal(false)} className="flex-1 py-3 text-subtle">
                                         Abbrechen
                                     </button>
-                                    <button type="submit" disabled={saving} className="flex-1 bg-primary text-white font-bold py-3 rounded-2xl flex items-center justify-center gap-2">
+                                    <button type="submit" disabled={saving} className="flex-1 bg-primary text-primary-foreground font-bold py-3 rounded-2xl flex items-center justify-center gap-2">
                                         {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileText className="w-4 h-4" />}
                                         Generieren
                                     </button>
