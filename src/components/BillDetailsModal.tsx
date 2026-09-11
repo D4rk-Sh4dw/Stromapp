@@ -1,6 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { X, FileText } from "lucide-react";
+import BillSettlement from "@/components/BillSettlement";
 
 interface Bill {
     id: string;
@@ -12,6 +13,8 @@ interface Bill {
     userId: string;
     user?: { email: string; showPvDetails?: boolean };
     mappingSnapshot?: string;
+    advancePayments?: number | null;
+    advanceMonths?: number | null;
 }
 
 interface BillDetailsModalProps {
@@ -201,10 +204,7 @@ export default function BillDetailsModal({ bill, onClose }: BillDetailsModalProp
                         </table>
                     </div>
 
-                    <div className="flex justify-between items-end border-t border-white/10 pt-4">
-                        <span className="text-lg font-bold">Rechnungsbetrag</span>
-                        <span className="text-3xl font-bold text-primary">{bill.totalAmount.toFixed(2)} €</span>
-                    </div>
+                    <BillSettlement bill={bill} />
                 </div>
             </motion.div>
         </div>

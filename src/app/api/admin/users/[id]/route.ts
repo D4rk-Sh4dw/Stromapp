@@ -8,7 +8,7 @@ export async function PUT(
     try {
         const { id } = await params;
         const body = await req.json();
-        const { role, autoBilling, email, allowBatteryPricing, customInternalRate, customGridBuffer, enablePvBilling, showPvDetails, password } = body;
+        const { role, autoBilling, email, allowBatteryPricing, customInternalRate, customGridBuffer, enablePvBilling, showPvDetails, monthlyAdvance, password } = body;
 
         // Ensure user exists
         const existingUser = await prisma.user.findUnique({
@@ -27,6 +27,7 @@ export async function PUT(
             showPvDetails: !!showPvDetails,
             customInternalRate: (customInternalRate !== "" && customInternalRate !== undefined && customInternalRate !== null) ? parseFloat(customInternalRate) : null,
             customGridBuffer: (customGridBuffer !== "" && customGridBuffer !== undefined && customGridBuffer !== null) ? parseInt(customGridBuffer) : null,
+            monthlyAdvance: (monthlyAdvance !== "" && monthlyAdvance !== undefined && monthlyAdvance !== null) ? parseFloat(monthlyAdvance) : null,
             email: email
         };
 

@@ -33,6 +33,9 @@ model User {
   customGridBuffer    Int?    // Override global grid buffer (Watts) for "Internal" state detection
   enablePvBilling     Boolean @default(false) // If true, PV/Internal pricing logic is applied
   showPvDetails       Boolean @default(false) // If true, PV/Internal details are shown in PDF
+
+  // Abschlag
+  monthlyAdvance      Float?  // Monatlicher Abschlag (€), wird bei der Abrechnung verrechnet
 }
 
 model SensorMapping {
@@ -70,6 +73,8 @@ model Bill {
   profit      Float? // Revenue - GridCost (Nullable for old bills)
   pdfUrl      String?
   mappingSnapshot String? // JSON snapshot of mappings
+  advancePayments Float?  // Summe der geleisteten Abschläge im Zeitraum (null = keine Abschläge)
+  advanceMonths   Float?  // Anzahl (anteiliger) Monate, null bei manuell eingetragener Summe
   createdAt   DateTime @default(now())
 }
 

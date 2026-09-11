@@ -1,3 +1,5 @@
+import { describeAdvance, getBillBalance } from "@/lib/billing";
+
 export const generateBillPDF = async (bill: any, userEmail: string, settings?: any) => {
     const { default: jsPDF } = await import("jspdf");
     const { default: autoTable } = await import("jspdf-autotable");
@@ -201,16 +203,34 @@ export const generateBillPDF = async (bill: any, userEmail: string, settings?: a
     // Total
     const finalY = (doc as any).lastAutoTable.finalY + 10;
 
-    // Draw Total Box
+    // Draw Total Box (wider when advance payments are listed, so the label fits)
+    const balance = getBillBalance(bill);
+    const boxX = balance ? 100 : 120;
     doc.setDrawColor(200);
-    doc.line(120, finalY, 190, finalY);
+    doc.line(boxX, finalY, 190, finalY);
 
     doc.setFontSize(12);
     doc.setFont("helvetica", "bold");
-    doc.text("Gesamtbetrag", 120, finalY + 8);
+    doc.text("Gesamtbetrag", boxX, finalY + 8);
     doc.text(`${bill.totalAmount.toFixed(2)} €`, 190, finalY + 8, { align: "right" });
 
-    doc.line(120, finalY + 12, 190, finalY + 12);
+    doc.line(boxX, finalY + 12, 190, finalY + 12);
+
+    if (balance) {
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+        doc.text(`abzgl. ${describeAdvance(bill)}`, boxX, finalY + 19);
+        doc.text(`- ${bill.advancePayments.toFixed(2)} €`, 190, finalY + 19, { align: "right" });
+
+        doc.line(boxX, finalY + 23, 190, finalY + 23);
+
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "bold");
+        doc.text(balance.label, boxX, finalY + 31);
+        doc.text(`${Math.abs(balance.amount).toFixed(2)} €`, 190, finalY + 31, { align: "right" });
+
+        doc.line(boxX, finalY + 35, 190, finalY + 35);
+    }
 
     // Footer
     doc.setFontSize(8);

@@ -18,6 +18,7 @@ export async function GET(req: NextRequest) {
                 customGridBuffer: true,
                 enablePvBilling: true,
                 showPvDetails: true,
+                monthlyAdvance: true,
             }
         });
         return NextResponse.json(users);
@@ -29,7 +30,7 @@ export async function GET(req: NextRequest) {
 // POST create new user
 export async function POST(req: NextRequest) {
     try {
-        const { email, password, role, autoBilling, allowBatteryPricing, customInternalRate, customGridBuffer, enablePvBilling, showPvDetails } = await req.json();
+        const { email, password, role, autoBilling, allowBatteryPricing, customInternalRate, customGridBuffer, enablePvBilling, showPvDetails, monthlyAdvance } = await req.json();
 
         if (!email || !password) {
             return NextResponse.json({ error: 'E-Mail und Passwort sind erforderlich' }, { status: 400 });
@@ -54,6 +55,7 @@ export async function POST(req: NextRequest) {
                 showPvDetails: !!showPvDetails,
                 customInternalRate: (customInternalRate !== "" && customInternalRate !== undefined) ? parseFloat(customInternalRate) : null,
                 customGridBuffer: (customGridBuffer !== "" && customGridBuffer !== undefined) ? parseInt(customGridBuffer) : null,
+                monthlyAdvance: (monthlyAdvance !== "" && monthlyAdvance !== undefined && monthlyAdvance !== null) ? parseFloat(monthlyAdvance) : null,
             },
             select: {
                 id: true,
@@ -66,6 +68,7 @@ export async function POST(req: NextRequest) {
                 customGridBuffer: true,
                 enablePvBilling: true,
                 showPvDetails: true,
+                monthlyAdvance: true,
             }
         });
 

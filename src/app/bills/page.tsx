@@ -16,6 +16,7 @@ import {
 import { generateBillPDF } from "@/utils/pdfGenerator";
 import { useAuth } from "@/contexts/AuthContext";
 import BillDetailsModal from "@/components/BillDetailsModal";
+import { getBillBalance } from "@/lib/billing";
 
 export default function BillsPage() {
     const { user } = useAuth();
@@ -99,6 +100,11 @@ export default function BillsPage() {
                                 <div className="text-right">
                                     <p className="text-[10px] text-white/40 font-bold uppercase tracking-wider">Gesamtbetrag</p>
                                     <p className="text-xl font-black text-primary">{bill.totalAmount.toFixed(2)} €</p>
+                                    {getBillBalance(bill) && (
+                                        <p className={`text-xs font-bold ${getBillBalance(bill)!.amount > 0 ? 'text-yellow-400' : 'text-green-400'}`}>
+                                            {getBillBalance(bill)!.label}: {Math.abs(getBillBalance(bill)!.amount).toFixed(2)} €
+                                        </p>
+                                    )}
                                 </div>
                                 <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/10 text-green-400 text-[10px] font-bold border border-green-500/20 w-fit">
                                     <CheckCircle2 className="w-3 h-3" />
